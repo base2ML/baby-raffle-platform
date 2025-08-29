@@ -1,0 +1,35 @@
+name: Simple GitHub Pages Deploy
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Create simple test page
+      run: |
+        mkdir -p dist
+        echo "<h1>Baby Raffle Test - Site Working!</h1><p>Domain: margojones.base2ml.com</p>" > dist/index.html
+    
+    - name: Setup Pages
+      uses: actions/configure-pages@v3
+    
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: ./dist
+    
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
