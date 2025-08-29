@@ -1,5 +1,5 @@
 
-#!/bin/bash
+uth #!/bin/bash
 
 # 🚀 Deploy FastAPI to AWS EC2 (Traditional approach)
 # Creates EC2 instance and deploys Docker container
