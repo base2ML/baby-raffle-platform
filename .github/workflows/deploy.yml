@@ -37,7 +37,7 @@ jobs:
       working-directory: ./frontend
       run: npm run build
       env:
-        VITE_API_URL: ${{ vars.VITE_API_URL || 'https://api.margojones.base2ml.com' }}
+        VITE_API_URL: https://margojones-production.up.railway.app
     
     - name: Setup Pages
       uses: actions/configure-pages@v3
