@@ -2,8 +2,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
-import psycopg2
-import psycopg2.extras
 import os
 from datetime import datetime
 import logging
@@ -23,49 +21,45 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Database configuration
-DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'margojones-babyraffle-db.cu1y2a26idsb.us-east-1.rds.amazonaws.com'),
-    'port': int(os.getenv('DB_PORT', '5432')),
-    'database': os.getenv('DB_NAME', 'babyraffle'),
-    'user': os.getenv('DB_USERNAME', 'postgres'),
-    'password': os.getenv('DB_PASSWORD', 'YgrzO9oHQScN5ctXcTOL'),
-    'sslmode': 'require'
-}
-
-def get_db_connection():
-    """Get database connection with proper error handling"""
-    try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        return conn
-    except Exception as e:
-        logger.error(f"Database connection error: {e}")
-        raise HTTPException(status_code=500, detail=f"Database connection failed: {str(e)}")
-
-@app.get("/")
-async def root():
-    """Root endpoint"""
-    return {"message": "Baby Raffle API", "status": "running"}
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint - don't test DB here to avoid 502s"""
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
-
-@app.get("/db-health")
-async def db_health_check():
-    """Separate DB health check"""
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT 1")
-        result = cur.fetchone()
-        cur.close()
-        conn.close()
-        return {"status": "db_healthy", "result": result[0]}
-    except Exception as e:
-        logger.error(f"DB health check failed: {e}")
-        return {"status": "db_unhealthy", "error": str(e)}
+# In-memory storage (for demo purposes)
+BETS_STORAGE = []
+CATEGORIES_STORAGE = [
+    {
+        "categoryKey": "baby_gender",
+        "categoryName": "Baby's Gender",
+        "description": "What gender will the baby be?",
+        "betPrice": "5.00",
+        "options": ["Boy", "Girl"]
+    },
+    {
+        "categoryKey": "birth_weight",
+        "categoryName": "Birth Weight", 
+        "description": "How much will the baby weigh?",
+        "betPrice": "10.00",
+        "options": ["Under 6 lbs", "6-7 lbs", "7-8 lbs", "8-9 lbs", "Over 9 lbs"]
+    },
+    {
+        "categoryKey": "birth_date",
+        "categoryName": "Birth Date",
+        "description": "When will the baby arrive?",
+        "betPrice": "7.50", 
+        "options": ["Before due date", "On due date", "1-3 days late", "4-7 days late", "More than a week late"]
+    },
+    {
+        "categoryKey": "eye_color",
+        "categoryName": "Eye Color",
+        "description": "What color eyes will the baby have?",
+        "betPrice": "5.00",
+        "options": ["Brown", "Blue", "Green", "Hazel", "Gray"]
+    },
+    {
+        "categoryKey": "hair_color",
+        "categoryName": "Hair Color", 
+        "description": "What color hair will the baby have?",
+        "betPrice": "5.00",
+        "options": ["Blonde", "Brown", "Black", "Red", "Light Brown"]
+    }
+]
 
 # Pydantic models
 class UserBet(BaseModel):
@@ -85,76 +79,39 @@ class BetCategory(BaseModel):
     betPrice: str
     options: List[str]
 
-# Mock data as fallback
-MOCK_CATEGORIES = [
-    {
-        "categoryKey": "baby_gender",
-        "categoryName": "Baby's Gender",
-        "description": "What gender will the baby be?",
-        "betPrice": "5.00",
-        "options": ["Boy", "Girl"]
-    },
-    {
-        "categoryKey": "birth_weight",
-        "categoryName": "Birth Weight",
-        "description": "How much will the baby weigh?",
-        "betPrice": "10.00",
-        "options": ["Under 6 lbs", "6-7 lbs", "7-8 lbs", "8-9 lbs", "Over 9 lbs"]
-    }
-]
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {"message": "Baby Raffle API", "status": "running", "version": "1.0.0"}
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 @app.get("/categories")
 async def get_categories():
     """Get all betting categories"""
     try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        
-        cur.execute("""
-            SELECT category_key, category_name, description, bet_price, options 
-            FROM bet_categories 
-            ORDER BY category_key
-        """)
-        
-        categories = cur.fetchall()
-        cur.close()
-        conn.close()
-        
-        if not categories:
-            logger.info("No categories in DB, returning mock data")
-            return MOCK_CATEGORIES
-            
-        return [dict(category) for category in categories]
-        
+        logger.info(f"Returning {len(CATEGORIES_STORAGE)} categories")
+        return CATEGORIES_STORAGE
     except Exception as e:
         logger.error(f"Error fetching categories: {e}")
-        logger.info("Returning mock categories due to DB error")
-        return MOCK_CATEGORIES
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/stats")
 async def get_stats():
     """Get betting statistics"""
     try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        
-        # Get total bets and amount
-        cur.execute("SELECT COUNT(*) as total_bets, COALESCE(SUM(amount), 0) as total_amount FROM user_bets")
-        totals = cur.fetchone()
-        
-        # Get max potential prize (sum of all bet prices)
-        cur.execute("SELECT COALESCE(SUM(CAST(bet_price AS DECIMAL)), 0) as max_prize FROM bet_categories")
-        max_prize_result = cur.fetchone()
-        
-        cur.close()
-        conn.close()
+        total_bets = len(BETS_STORAGE)
+        total_amount = sum(bet["amount"] for bet in BETS_STORAGE)
+        max_prize = sum(float(cat["betPrice"]) for cat in CATEGORIES_STORAGE)
         
         return {
-            "totalBets": totals['total_bets'] or 0,
-            "totalAmount": float(totals['total_amount'] or 0),
-            "maxPrize": float(max_prize_result['max_prize'] or 100)
+            "totalBets": total_bets,
+            "totalAmount": float(total_amount),
+            "maxPrize": float(max_prize)
         }
-        
     except Exception as e:
         logger.error(f"Error fetching stats: {e}")
         return {
@@ -167,27 +124,27 @@ async def get_stats():
 async def submit_bets(bet_submission: BetSubmission):
     """Submit betting entries"""
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
+        submitted_bets = []
         
         for bet in bet_submission.bets:
-            cur.execute("""
-                INSERT INTO user_bets (name, email, category_key, bet_value, amount, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, (
-                bet_submission.name,
-                bet_submission.email,
-                bet.categoryKey,
-                bet.betValue,
-                bet.amount,
-                datetime.now()
-            ))
+            bet_record = {
+                "id": len(BETS_STORAGE) + len(submitted_bets) + 1,
+                "name": bet_submission.name,
+                "email": bet_submission.email,
+                "categoryKey": bet.categoryKey,
+                "betValue": bet.betValue,
+                "amount": bet.amount,
+                "created_at": datetime.now().isoformat()
+            }
+            submitted_bets.append(bet_record)
+            BETS_STORAGE.append(bet_record)
         
-        conn.commit()
-        cur.close()
-        conn.close()
-        
-        return {"message": "Bets submitted successfully", "count": len(bet_submission.bets)}
+        logger.info(f"Successfully submitted {len(submitted_bets)} bets for {bet_submission.name}")
+        return {
+            "message": "Bets submitted successfully", 
+            "count": len(submitted_bets),
+            "bets": submitted_bets
+        }
         
     except Exception as e:
         logger.error(f"Error submitting bets: {e}")
@@ -197,24 +154,24 @@ async def submit_bets(bet_submission: BetSubmission):
 async def get_all_bets():
     """Get all bets for admin view"""
     try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        
-        cur.execute("""
-            SELECT name, email, category_key, bet_value, amount, created_at 
-            FROM user_bets 
-            ORDER BY created_at DESC
-        """)
-        
-        bets = cur.fetchall()
-        cur.close()
-        conn.close()
-        
-        return [dict(bet) for bet in bets]
+        logger.info(f"Returning {len(BETS_STORAGE)} bets for admin")
+        return BETS_STORAGE
         
     except Exception as e:
         logger.error(f"Error fetching admin bets: {e}")
         return []
+
+@app.delete("/admin/bets")
+async def clear_all_bets():
+    """Clear all bets (admin only)"""
+    try:
+        count = len(BETS_STORAGE)
+        BETS_STORAGE.clear()
+        logger.info(f"Cleared {count} bets")
+        return {"message": f"Cleared {count} bets", "remaining": len(BETS_STORAGE)}
+    except Exception as e:
+        logger.error(f"Error clearing bets: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
