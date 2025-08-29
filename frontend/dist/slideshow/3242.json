@@ -1,0 +1,29 @@
+{
+  "images": [
+    {
+      "filename": "expecting-couple-baby-shoes.png",
+      "caption": "Our Greatest Adventure Begins!",
+      "subtitle": "Join us in celebrating this magical time",
+      "date": "2024-08-01",
+      "alt": "Expecting parents with baby shoes"
+    },
+    {
+      "filename": "beautiful-baby-nursery.png",
+      "caption": "The Nursery is Ready & Waiting!",
+      "subtitle": "Every detail prepared with love and excitement",
+      "date": "2024-08-15",
+      "alt": "Beautiful baby nursery ready for arrival"
+    },
+    {
+      "filename": "baby-shower-diapers-gifts.png",
+      "caption": "Join Our Baby Raffle!",
+      "subtitle": "Make your predictions and win amazing prizes",
+      "date": "2024-08-20",
+      "alt": "Baby shower celebration with gifts and surprises"
+    }
+  ],
+  "autoGenerate": true,
+  "folderPath": "/slideshow/",
+  "defaultCaption": "Our Baby Journey",
+  "defaultSubtitle": "Sharing every precious moment with you"
+}

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Place Your Bets - Margo's Baby Raffle</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gray-50">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="index.html" class="text-2xl font-bold text-blue-600">🍼 Baby Raffle</a>
+                <div class="flex space-x-6">
+                    <a href="index.html" class="text-gray-600 hover:text-blue-600 transition-colors">Home</a>
+                    <a href="betting.html" class="text-blue-600 font-semibold">Place Bets</a>
+                    <a href="admin.html" class="text-gray-600 hover:text-blue-600 transition-colors">Admin</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <section class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4">Make Your Predictions!</h1>
+            <p class="text-xl md:text-2xl mb-2">Choose your categories and place your bets</p>
+            <p class="text-lg opacity-90">$5 per bet • Winners get 50% of the prize pool</p>
+        </div>
+    </section>
+
+    <!-- Betting Form Section -->
+    <section class="py-20">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                
+                <!-- User Info Form -->
+                <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                    <h2 class="text-2xl font-bold mb-6">Your Information</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                            <input type="text" id="user-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your full name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                            <input type="email" id="user-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="your.email@example.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                            <input type="tel" id="user-phone" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="(555) 123-4567">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Betting Categories -->
+                <div class="space-y-6">
+                    
+                    <!-- Birth Date -->
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <div class="flex items-center mb-6">
+                            <div class="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mr-4">
+                                📅
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold">Birth Date</h3>
+                                <p class="text-gray-600">When will baby arrive?</p>
+                            </div>
+                            <div class="ml-auto">
+                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">$5.00</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <input type="checkbox" id="bet-birth-date" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                            <input type="text" id="birth-date-value" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., March 15, 2024">
+                        </div>
+                    </div>
+
+                    <!-- Birth Weight -->
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <div class="flex items-center mb-6">
+                            <div class="bg-purple-100 rounded-full w-12 h-12 flex items-center justify-center mr-4">
+                                ⚖️
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold">Birth Weight</h3>
+                                <p class="text-gray-600">How much will baby weigh?</p>
+                            </div>
+                            <div class="ml-auto">
+                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">$5.00</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <input type="checkbox" id="bet-birth-weight" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                            <input type="text" id="birth-weight-value" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 7 lbs 8 oz">
+                        </div>
+                    </div>
+
+                    <!-- Birth Length -->
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <div class="flex items-center mb-6">
+                            <div class="bg-yellow-100 rounded-full w-12 h-12 flex items-center justify-center mr-4">
+                                📏
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold">Birth Length</h3>
+                                <p class="text-gray-600">How long will baby be?</p>
+                            </div>
+                            <div class="ml-auto">
+                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">$5.00</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <input type="checkbox" id="bet-birth-length" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                            <input type="text" id="birth-length-value" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 20 inches">
+                        </div>
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <div class="flex items-center mb-6">
+                            <div class="bg-pink-100 rounded-full w-12 h-12 flex items-center justify-center mr-4">
+                                👶
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold">Gender</h3>
+                                <p class="text-gray-600">What will baby be?</p>
+                            </div>
+                            <div class="ml-auto">
+                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">$5.00</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <input type="checkbox" id="bet-gender" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                            <select id="gender-value" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select gender...</option>
+                                <option value="Boy">Boy</option>
+                                <option value="Girl">Girl</option>
+                                <option value="Surprise">Surprise me!</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Eye Color -->
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <div class="flex items-center mb-6">
+                            <div class="bg-green-100 rounded-full w-12 h-12 flex items-center justify-center mr-4">
+                                👀
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold">Eye Color</h3>
+                                <p class="text-gray-600">What color eyes will baby have?</p>
+                            </div>
+                            <div class="ml-auto">
+                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">$5.00</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <input type="checkbox" id="bet-eye-color" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                            <input type="text" id="eye-color-value" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Brown, Blue, Green, Hazel">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Summary and Payment -->
+                <div class="bg-white rounded-lg shadow-lg p-8 mt-8">
+                    <h3 class="text-2xl font-bold mb-6">Order Summary</h3>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="flex justify-between items-center">
+                            <span>Selected bets:</span>
+                            <span id="bet-count" class="font-semibold">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Price per bet:</span>
+                            <span class="font-semibold">$5.00</span>
+                        </div>
+                        <hr>
+                        <div class="flex justify-between items-center text-xl font-bold">
+                            <span>Total:</span>
+                            <span id="total-amount" class="text-blue-600">$0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 p-6 rounded-lg mb-6">
+                        <h4 class="font-semibold text-blue-900 mb-2">Payment Instructions</h4>
+                        <p class="text-blue-800 mb-2">Send your bet amount via Venmo to complete your entry!</p>
+                        <p class="text-blue-700 text-sm">Venmo: <strong>@Margo-Jones</strong></p>
+                        <p class="text-blue-700 text-sm">Include your name and "Baby Raffle" in the Venmo note. Your bets will be verified once payment is received.</p>
+                    </div>
+
+                    <button id="submit-bets" class="w-full bg-blue-600 text-white py-4 px-8 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                        Place Your Bets! 🎲
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4 text-center">
+            <h3 class="text-2xl font-semibold mb-4">Good Luck!</h3>
+            <p class="text-gray-300 max-w-2xl mx-auto">May the best predictions win. We can't wait to see how close you get!</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/betting.js"></script>
+</body>
+</html>

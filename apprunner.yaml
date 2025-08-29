@@ -1,0 +1,17 @@
+version: 1.0
+runtime: docker
+build:
+  commands:
+    build:
+      - echo "No build commands needed - using pre-built image"
+run:
+  runtime-version: latest
+  command: uvicorn main:app --host 0.0.0.0 --port 8000
+  network:
+    port: 8000
+    env-vars:
+      DB_HOST: margojones-babyraffle-db.cu1y2a26idsb.us-east-1.rds.amazonaws.com
+      DB_PORT: 5432
+      DB_NAME: babyraffle
+      DB_USERNAME: postgres
+      DB_PASSWORD: YgrzO9oHQScN5ctXcTOL

@@ -1,0 +1,20 @@
+# Render.com deployment config
+services:
+  - type: web
+    name: baby-raffle-api
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_HOST
+        value: margojones-babyraffle-db.cu1y2a26idsb.us-east-1.rds.amazonaws.com
+      - key: DB_PORT
+        value: 5432
+      - key: DB_NAME
+        value: babyraffle
+      - key: DB_USERNAME
+        value: postgres
+      - key: DB_PASSWORD
+        sync: false  # Set manually in Render dashboard
+    healthCheckPath: /health
+    domains:
+      - api.margojones.base2ml.com

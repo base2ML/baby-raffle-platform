@@ -1,0 +1,35 @@
+{
+  "family": "baby-raffle-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::741783034843:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "baby-raffle-api",
+      "image": "741783034843.dkr.ecr.us-east-1.amazonaws.com/baby-raffle-api:latest",
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {"name": "DB_HOST", "value": "margojones-babyraffle-db.cu1y2a26idsb.us-east-1.rds.amazonaws.com"},
+        {"name": "DB_PORT", "value": "5432"},
+        {"name": "DB_NAME", "value": "babyraffle"},
+        {"name": "DB_USERNAME", "value": "postgres"},
+        {"name": "DB_PASSWORD", "value": "YgrzO9oHQScN5ctXcTOL"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/baby-raffle-task",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

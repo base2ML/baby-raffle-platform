@@ -1,0 +1,62 @@
+import { AppConfig } from './app-config';
+
+// Margo's Baby Raffle Configuration - Serverless Version
+export const margoConfig: AppConfig = {
+  event: {
+    parentNames: "Ali & Herb",
+    eventTitle: "Welcome to Margo's Baby Raffle!",
+    eventSubtitle: "Help us celebrate our little miracle on the way",
+    welcomeMessage: "Join us in this exciting journey as we prepare to welcome our little one!",
+    footerMessage: "Thank you for being part of our journey. We can't wait to meet our little miracle!"
+  },
+  
+  betting: {
+    pricePerBet: 5.00,
+    winnerPercentage: 0.5,
+    currency: "USD",
+    categories: [
+      {
+        categoryKey: "birth_date",
+        displayName: "Birth Date",
+        description: "When will baby arrive?",
+        placeholder: "e.g., March 15, 2024"
+      },
+      {
+        categoryKey: "birth_weight",
+        displayName: "Birth Weight", 
+        description: "How much will baby weigh?",
+        placeholder: "e.g., 7 lbs 8 oz"
+      },
+      {
+        categoryKey: "birth_length",
+        displayName: "Birth Length",
+        description: "How long will baby be?",
+        placeholder: "e.g., 20 inches"
+      }
+    ]
+  },
+  
+  payment: {
+    venmoUsername: "@Christopher-Lindeman-7", // TODO: Update with actual Venmo username
+    paymentInstructions: "Send your bet amount via Venmo to complete your entry!",
+    paymentNote: "Include your name and 'Baby Raffle' in the Venmo note. Your bets will be verified once payment is received."
+  },
+  
+  social: {
+    shareTitle: "Join Margo's Baby Raffle!",
+    shareText: "I'm placing bets in Margo's baby raffle! Join me and guess details about her little one. $5 per bet, winner takes 50% of the pot!",
+    shareTextExpanded: "I'm joining Margo's baby raffle! Come make predictions about her little one's arrival with me. $5 per bet and amazing prizes await the best guessers!"
+  },
+  
+  images: {
+    // Dynamic slideshow enabled - images loaded from /public/slideshow/ via manifest
+    slideshow: []
+  },
+  
+  admin: {
+    adminTitle: "Margo's Baby Raffle Admin",
+    supportEmail: "margo@margojones.base2ml.com"
+  }
+};
+
+export default margoConfig;

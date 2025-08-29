@@ -1,0 +1,92 @@
+service: baby-raffle-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'prod'}
+  environment:
+    STAGE: ${self:provider.stage}
+    DATABASE_SECRET_NAME: ${opt:subdomain, 'margojones'}/database/connection
+  vpc:
+    securityGroupIds:
+      - ${cf:margojones-base2ml-com-database.LambdaSecurityGroupId}
+    subnetIds:
+      - ${cf:margojones-base2ml-com-database.PrivateSubnet1Id}
+      - ${cf:margojones-base2ml-com-database.PrivateSubnet2Id}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+      Resource: 
+        - arn:aws:secretsmanager:${self:provider.region}:*:secret:${opt:subdomain, 'margojones'}/database/connection-*
+    - Effect: Allow
+      Action:
+        - ec2:CreateNetworkInterface
+        - ec2:DescribeNetworkInterfaces
+        - ec2:DeleteNetworkInterface
+      Resource: "*"
+
+plugins:
+  - serverless-esbuild
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    target: node18
+    format: cjs
+    platform: node
+    external:
+      - pg-native
+      - aws-lambda
+      - aws-sdk
+
+functions:
+  bets:
+    handler: functions/bets.handler
+    events:
+      - http:
+          path: /bets
+          method: get
+          cors: true
+      - http:
+          path: /bets
+          method: post
+          cors: true
+    timeout: 30
+
+  categories:
+    handler: functions/categories.handler
+    events:
+      - http:
+          path: /categories
+          method: get
+          cors: true
+      - http:
+          path: /categories
+          method: post
+          cors: true
+    timeout: 30
+
+  admin:
+    handler: functions/admin.handler
+    events:
+      - http:
+          path: /admin/validate
+          method: post
+          cors: true
+    timeout: 30
+
+  stats:
+    handler: functions/stats.handler
+    events:
+      - http:
+          path: /stats
+          method: get
+          cors: true
+    timeout: 30
+
+# No custom resources needed - Serverless handles CORS automatically

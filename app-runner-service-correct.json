@@ -1,0 +1,35 @@
+{
+  "ServiceName": "baby-raffle-api",
+  "SourceConfiguration": {
+    "ImageRepository": {
+      "ImageIdentifier": "741783034843.dkr.ecr.us-east-1.amazonaws.com/baby-raffle-api:latest",
+      "ImageConfiguration": {
+        "Port": "8000",
+        "RuntimeEnvironmentVariables": {
+          "DB_HOST": "margojones-babyraffle-db.cu1y2a26idsb.us-east-1.rds.amazonaws.com",
+          "DB_PORT": "5432",
+          "DB_NAME": "babyraffle",
+          "DB_USERNAME": "postgres",
+          "DB_PASSWORD": "YgrzO9oHQScN5ctXcTOL"
+        }
+      },
+      "ImageRepositoryType": "ECR"
+    },
+    "AuthenticationConfiguration": {
+      "AccessRoleArn": "arn:aws:iam::741783034843ole/AppRunnerECRAccessRole"
+    },
+    "AutoDeploymentsEnabled": true
+  },
+  "InstanceConfiguration": {
+    "Cpu": "0.25 vCPU",
+    "Memory": "0.5 GB"
+  },
+  "HealthCheckConfiguration": {
+    "Protocol": "HTTP",
+    "Path": "/health",
+    "Interval": 10,
+    "Timeout": 5,
+    "HealthyThreshold": 1,
+    "UnhealthyThreshold": 5
+  }
+}
