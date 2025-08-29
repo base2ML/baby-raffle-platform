@@ -1,7 +1,8 @@
 name: Simple GitHub Pages Deploy
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
   
 jobs:
   deploy:
