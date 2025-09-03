@@ -16,7 +16,7 @@ const rules = [
   {
     icon: <Gift className="h-6 w-6 text-primary" />,
     title: "Bring Diapers, Get Tickets",
-    description: "For every pack of diapers you bring, you get one raffle ticket for amazing prizes!",
+    description: "For every pack of diapers you bring, you get one raffle ticket for amazing prizes! 🎁",
   },
   {
     icon: <Baby className="h-6 w-6 text-primary" />,
