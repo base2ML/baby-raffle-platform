@@ -28,7 +28,24 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
 
 export async function getBets(validated?: boolean) {
   const params = validated !== undefined ? `?validated=${validated}` : ''
-  return apiRequest(`/bets${params}`)
+  const bets = await apiRequest(`/admin/bets${params}`)
+  
+  // Transform backend format to frontend format
+  return bets.map((bet: any) => ({
+    id: bet.id,
+    userName: bet.name,
+    userEmail: bet.email,
+    userPhone: bet.userPhone || null,
+    categoryKey: bet.categoryKey,
+    betValue: bet.betValue,
+    amount: bet.amount.toString(),
+    validated: bet.validated || false,
+    paymentReference: bet.paymentReference || null,
+    venmoTransactionId: bet.venmoTransactionId || null,
+    createdAt: bet.created_at,
+    validatedAt: bet.validatedAt || null,
+    validatedBy: bet.validatedBy || null,
+  }))
 }
 
 export async function createBets(userData: {
