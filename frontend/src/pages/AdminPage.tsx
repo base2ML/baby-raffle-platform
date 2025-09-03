@@ -38,8 +38,8 @@ interface CategoryTotal {
 }
 
 export default function AdminPage() {
-  // Authentication state
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  // Authentication state - temporarily default to true for testing
+  const [isAuthenticated, setIsAuthenticated] = useState(true)
   const [password, setPassword] = useState("")
   const [authError, setAuthError] = useState("")
 
@@ -56,11 +56,15 @@ export default function AdminPage() {
   const [showValidatedOnly, setShowValidatedOnly] = useState(false)
 
   const handleLogin = () => {
+    console.log('Login attempt with password:', password) // Debug log
     // Simple password check - in production, use proper authentication
     if (password === "admin123") {
+      console.log('Password correct, setting authenticated to true') // Debug log
       setIsAuthenticated(true)
       setAuthError("")
+      setPassword("") // Clear password field
     } else {
+      console.log('Password incorrect') // Debug log
       setAuthError("Invalid password")
     }
   }
