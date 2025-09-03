@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Baby Raffle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-6">Baby Raffle Admin Dashboard</h1>
+        
+        <div id="login-section" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Admin Login</h2>
+            <input type="password" id="admin-password" placeholder="Enter password" 
+                   class="w-full p-2 border rounded mb-4" onkeypress="handleKeyPress(event)">
+            <button onclick="login()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                Login
+            </button>
+            <div id="login-error" class="text-red-500 mt-2 hidden">Invalid password</div>
+        </div>
+
+        <div id="admin-content" class="hidden">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Submitted Bets</h2>
+                <button onclick="loadBets()" class="mb-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Refresh Data
+                </button>
+                <div id="bets-container">
+                    <div class="text-gray-500">Loading bets...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://margojones-production.up.railway.app';
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                login();
+            }
+        }
+        
+        function login() {
+            const password = document.getElementById('admin-password').value;
+            const loginError = document.getElementById('login-error');
+            
+            if (password === 'admin123') {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+                loadBets();
+                loginError.classList.add('hidden');
+            } else {
+                loginError.classList.remove('hidden');
+            }
+        }
+        
+        async function loadBets() {
+            const container = document.getElementById('bets-container');
+            container.innerHTML = '<div class="text-gray-500">Loading bets...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/bets`);
+                const bets = await response.json();
+                
+                if (bets.length === 0) {
+                    container.innerHTML = '<div class="text-gray-500">No bets submitted yet.</div>';
+                    return;
+                }
+                
+                let html = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="px-4 py-2 text-left">ID</th>
+                                    <th class="px-4 py-2 text-left">Name</th>
+                                    <th class="px-4 py-2 text-left">Email</th>
+                                    <th class="px-4 py-2 text-left">Category</th>
+                                    <th class="px-4 py-2 text-left">Bet</th>
+                                    <th class="px-4 py-2 text-left">Amount</th>
+                                    <th class="px-4 py-2 text-left">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                bets.forEach(bet => {
+                    html += `
+                        <tr class="border-b">
+                            <td class="px-4 py-2">${bet.id}</td>
+                            <td class="px-4 py-2">${bet.name}</td>
+                            <td class="px-4 py-2">${bet.email}</td>
+                            <td class="px-4 py-2">${bet.categoryKey}</td>
+                            <td class="px-4 py-2">${bet.betValue}</td>
+                            <td class="px-4 py-2">$${bet.amount}</td>
+                            <td class="px-4 py-2">${new Date(bet.created_at).toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table></div>';
+                html += `<div class="mt-4 text-gray-600">Total: ${bets.length} bets</div>`;
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading bets:', error);
+                container.innerHTML = '<div class="text-red-500">Error loading bets. Check console for details.</div>';
+            }
+        }
+    </script>
+</body>
+</html>
