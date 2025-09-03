@@ -38,6 +38,11 @@ interface CategoryTotal {
 }
 
 export default function AdminPage() {
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [password, setPassword] = useState("")
+  const [authError, setAuthError] = useState("")
+
   // Load configuration
   const adminConfig = useAdminConfig()
   const bettingConfig = useBettingConfig()
@@ -49,6 +54,48 @@ export default function AdminPage() {
   const [isValidating, setIsValidating] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [showValidatedOnly, setShowValidatedOnly] = useState(false)
+
+  const handleLogin = () => {
+    // Simple password check - in production, use proper authentication
+    if (password === "admin123") {
+      setIsAuthenticated(true)
+      setAuthError("")
+    } else {
+      setAuthError("Invalid password")
+    }
+  }
+
+  // Show login form if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-blue-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Admin Login</CardTitle>
+            <CardDescription>Enter password to access admin dashboard</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+              />
+            </div>
+            {authError && (
+              <p className="text-red-500 text-sm">{authError}</p>
+            )}
+            <Button onClick={handleLogin} className="w-full">
+              Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   useEffect(() => {
     fetchBets()
@@ -68,15 +115,22 @@ export default function AdminPage() {
 
   const fetchCategoryTotals = async () => {
     try {
-      const data = await getCategories()
-      setCategoryTotals(data.categories.map((cat: CategoryTotal & { displayName: string }) => ({
+      const categories = await getCategories()
+      // Transform backend format to frontend format
+      setCategoryTotals(categories.map((cat: any) => ({
         categoryKey: cat.categoryKey,
-        displayName: cat.displayName,
-        totalAmount: cat.totalAmount || '0',
-        betCount: cat.betCount || 0
+        displayName: cat.categoryName, // Backend uses categoryName, not displayName
+        totalAmount: cat.betPrice, // Use bet price as placeholder
+        betCount: 0 // Will be calculated from actual bets
       })))
     } catch (error) {
       console.error('Failed to fetch category totals:', error)
+      // Set fallback data
+      setCategoryTotals([
+        { categoryKey: 'baby_gender', displayName: "Baby's Gender", totalAmount: '5.00', betCount: 0 },
+        { categoryKey: 'birth_weight', displayName: 'Birth Weight', totalAmount: '10.00', betCount: 0 },
+        { categoryKey: 'birth_date', displayName: 'Birth Date', totalAmount: '7.50', betCount: 0 }
+      ])
     }
   }
 
