@@ -81,14 +81,27 @@
                                     <th class="px-4 py-2 text-left">Bet</th>
                                     <th class="px-4 py-2 text-left">Amount</th>
                                     <th class="px-4 py-2 text-left">Date</th>
+                                    <th class="px-4 py-2 text-left">Status</th>
+                                    <th class="px-4 py-2 text-left">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                 `;
                 
                 bets.forEach(bet => {
+                    const isValidated = bet.validated || false;
+                    const statusBadge = isValidated 
+                        ? '<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Authenticated</span>'
+                        : '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Pending</span>';
+                    
+                    const actionButton = isValidated 
+                        ? '<span class="text-gray-500">Validated</span>'
+                        : `<button onclick="authenticateBet(${bet.id})" 
+                             class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 disabled:opacity-50" 
+                             id="auth-btn-${bet.id}">Authenticate</button>`;
+                    
                     html += `
-                        <tr class="border-b">
+                        <tr class="border-b ${isValidated ? 'bg-green-50' : ''}">
                             <td class="px-4 py-2">${bet.id}</td>
                             <td class="px-4 py-2">${bet.name}</td>
                             <td class="px-4 py-2">${bet.email}</td>
@@ -96,6 +109,8 @@
                             <td class="px-4 py-2">${bet.betValue}</td>
                             <td class="px-4 py-2">$${bet.amount}</td>
                             <td class="px-4 py-2">${new Date(bet.created_at).toLocaleString()}</td>
+                            <td class="px-4 py-2">${statusBadge}</td>
+                            <td class="px-4 py-2">${actionButton}</td>
                         </tr>
                     `;
                 });
@@ -109,6 +124,67 @@
                 console.error('Error loading bets:', error);
                 container.innerHTML = '<div class="text-red-500">Error loading bets. Check console for details.</div>';
             }
+        }
+        
+        async function authenticateBet(betId) {
+            const button = document.getElementById(`auth-btn-${betId}`);
+            const originalText = button.textContent;
+            
+            // Disable button and show loading
+            button.disabled = true;
+            button.textContent = 'Authenticating...';
+            button.classList.add('opacity-50');
+            
+            try {
+                // For now, just simulate authentication by marking as validated
+                // In a real system, you'd call a backend API to validate the bet
+                const response = await fetch(`${API_URL}/admin/validate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        betIds: [betId],
+                        validatedBy: 'admin'
+                    })
+                });
+                
+                if (response.ok) {
+                    // Show success message
+                    showMessage('Bet authenticated successfully!', 'success');
+                    // Reload the bets to show updated status
+                    setTimeout(() => {
+                        loadBets();
+                    }, 1000);
+                } else {
+                    throw new Error('Failed to authenticate bet');
+                }
+                
+            } catch (error) {
+                console.error('Error authenticating bet:', error);
+                showMessage('Failed to authenticate bet. This feature may not be implemented in the backend yet.', 'error');
+                
+                // Re-enable button
+                button.disabled = false;
+                button.textContent = originalText;
+                button.classList.remove('opacity-50');
+            }
+        }
+        
+        function showMessage(message, type) {
+            // Create and show a temporary message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `fixed top-4 right-4 p-4 rounded shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+            }`;
+            messageDiv.textContent = message;
+            
+            document.body.appendChild(messageDiv);
+            
+            // Remove message after 3 seconds
+            setTimeout(() => {
+                document.body.removeChild(messageDiv);
+            }, 3000);
         }
     </script>
 </body>

@@ -9,6 +9,7 @@ import SocialShare from "@/components/social-share"
 import { useEventConfig, useSocialConfig } from "@/hooks/use-config"
 import { useDynamicSlideshow } from "@/hooks/use-dynamic-slideshow"
 import { useLiveStats } from "@/hooks/use-live-stats"
+import { getBets } from "@/lib/utils"
 
 // Incentives will be created dynamically in the component using live stats
 

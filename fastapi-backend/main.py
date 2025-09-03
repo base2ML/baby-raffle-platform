@@ -72,6 +72,10 @@ class BetSubmission(BaseModel):
     email: str
     bets: List[UserBet]
 
+class BetValidation(BaseModel):
+    betIds: List[int]
+    validatedBy: str
+
 class BetCategory(BaseModel):
     categoryKey: str
     categoryName: str
@@ -160,6 +164,28 @@ async def get_all_bets():
     except Exception as e:
         logger.error(f"Error fetching admin bets: {e}")
         return []
+
+@app.post("/admin/validate")
+async def validate_bets(validation: BetValidation):
+    """Validate/authenticate bets (admin only)"""
+    try:
+        validated_bets = []
+        for bet in BETS_STORAGE:
+            if bet["id"] in validation.betIds:
+                bet["validated"] = True
+                bet["validated_by"] = validation.validatedBy
+                bet["validated_at"] = datetime.now().isoformat()
+                validated_bets.append(bet)
+        
+        logger.info(f"Validated {len(validated_bets)} bets by {validation.validatedBy}")
+        return {
+            "message": f"Successfully validated {len(validated_bets)} bets",
+            "validated_bets": validated_bets
+        }
+        
+    except Exception as e:
+        logger.error(f"Error validating bets: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/admin/bets")
 async def clear_all_bets():
