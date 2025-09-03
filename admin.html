@@ -94,11 +94,17 @@
                         ? '<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Authenticated</span>'
                         : '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Pending</span>';
                     
-                    const actionButton = isValidated 
-                        ? '<span class="text-gray-500">Validated</span>'
+                    const authenticateButton = isValidated 
+                        ? '<span class="text-gray-500 text-sm">Validated</span>'
                         : `<button onclick="authenticateBet(${bet.id})" 
-                             class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 disabled:opacity-50" 
+                             class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 disabled:opacity-50 mr-1" 
                              id="auth-btn-${bet.id}">Authenticate</button>`;
+                    
+                    const deleteButton = `<button onclick="deleteBet(${bet.id})" 
+                        class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 disabled:opacity-50" 
+                        id="del-btn-${bet.id}">Delete</button>`;
+                    
+                    const actionButton = authenticateButton + deleteButton;
                     
                     html += `
                         <tr class="border-b ${isValidated ? 'bg-green-50' : ''}">
@@ -163,6 +169,46 @@
             } catch (error) {
                 console.error('Error authenticating bet:', error);
                 showMessage('Failed to authenticate bet. This feature may not be implemented in the backend yet.', 'error');
+                
+                // Re-enable button
+                button.disabled = false;
+                button.textContent = originalText;
+                button.classList.remove('opacity-50');
+            }
+        }
+        
+        async function deleteBet(betId) {
+            // Confirm deletion
+            if (!confirm('Are you sure you want to delete this bet? This action cannot be undone.')) {
+                return;
+            }
+            
+            const button = document.getElementById(`del-btn-${betId}`);
+            const originalText = button.textContent;
+            
+            // Disable button and show loading
+            button.disabled = true;
+            button.textContent = 'Deleting...';
+            button.classList.add('opacity-50');
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/bets/${betId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showMessage('Bet deleted successfully!', 'success');
+                    // Reload the bets to show updated list
+                    setTimeout(() => {
+                        loadBets();
+                    }, 500);
+                } else {
+                    throw new Error('Failed to delete bet');
+                }
+                
+            } catch (error) {
+                console.error('Error deleting bet:', error);
+                showMessage('Failed to delete bet. Check console for details.', 'error');
                 
                 // Re-enable button
                 button.disabled = false;
