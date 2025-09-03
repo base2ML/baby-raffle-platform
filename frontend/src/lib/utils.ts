@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // API utility for making requests to Lambda backend
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://9crmm86fmj.execute-api.us-east-1.amazonaws.com/prod'
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://margojones-production.up.railway.app'
 
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const url = `${API_BASE_URL}${endpoint}`
@@ -41,9 +41,20 @@ export async function createBets(userData: {
     amount: number
   }>
 }) {
+  // Transform data format to match Railway backend expectations
+  const transformedData = {
+    name: userData.userName,
+    email: userData.userEmail,
+    bets: userData.bets.map(bet => ({
+      categoryKey: bet.categoryKey,
+      betValue: bet.betValue,
+      amount: bet.amount
+    }))
+  }
+  
   return apiRequest('/bets', {
     method: 'POST',
-    body: JSON.stringify(userData),
+    body: JSON.stringify(transformedData),
   })
 }
 
