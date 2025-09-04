@@ -1,267 +1,329 @@
-# Serverless Baby Raffle Framework
+# 🎉 Baby Raffle SaaS Multi-Tenant Platform
 
-A **fully serverless** baby raffle application framework built with React, Lambda, and AWS. Pay only when users access your site, with automatic scaling from 0 to thousands of users.
+A complete multi-tenant SaaS platform that allows users to create and deploy their own baby betting sites with OAuth authentication, tenant isolation, and comprehensive management features.
 
-## 📖 **NEW USERS START HERE**
-**👉 See [USER_GUIDE.md](USER_GUIDE.md) for complete setup and usage instructions, including the new dynamic slideshow system!**
+## 🏗️ Architecture
 
-**Quick Links:**
-- **[USER_GUIDE.md](USER_GUIDE.md)** - Complete user manual (start here!)
-- **[QUICK_START.md](QUICK_START.md)** - Super quick reference
-- **[DYNAMIC_SLIDESHOW_GUIDE.md](DYNAMIC_SLIDESHOW_GUIDE.md)** - Slideshow details
+- **Backend**: FastAPI with PostgreSQL and Row-Level Security for tenant isolation
+- **Frontend**: React + TypeScript with Vite (legacy single-tenant example)
+- **Authentication**: OAuth2 with Google and Apple Sign-In
+- **Database**: PostgreSQL with advanced multi-tenant isolation
+- **Deployment**: Docker + Railway.app ready
 
----
+## 🚀 Quick Start
 
-## 🎯 Why Serverless?
+### Prerequisites
 
-### Cost Benefits
-- **Pay-per-use**: Only charged when people access the site
-- **Estimated cost**: $1-5/month for typical baby raffle usage
-- **No always-on servers**: Traditional approach costs $20-50/month even when unused
+- **Python 3.11+**
+- **PostgreSQL 15+** 
+- **Node.js 18+** (optional, for frontend)
+- **Docker** (optional, for containerized deployment)
 
-### Performance Benefits
-- **Auto-scaling**: Handles traffic spikes automatically
-- **Global CDN**: Fast loading worldwide via CloudFront
-- **Sub-second response times**: Lambda cold starts optimized
-
-### Maintenance Benefits
-- **Zero server management**: AWS handles all infrastructure
-- **Automatic updates**: No security patches or OS updates needed
-- **High availability**: Built-in redundancy and failover
-
-## 🚀 Quick Deployment
-
-### For Margo (margojones.base2ml.com)
-```bash
-./deploy-serverless-margo.sh
-```
-
-### For Anyone Else
-```bash
-./deploy-serverless.sh yoursubdomain yourdomain.com
-```
-
-## 🏗 Serverless Architecture
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Users/Browsers │───▶│  CloudFront CDN  │───▶│   S3 Bucket     │
-│                 │    │                  │    │  (React SPA)    │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌──────────────────┐    ┌─────────────────┐
-                       │   API Gateway    │───▶│ Lambda Functions│
-                       │                  │    │ (Node.js APIs)  │
-                       └──────────────────┘    └─────────────────┘
-                                                        │
-                                                        ▼
-                                                ┌─────────────────┐
-                                                │ PostgreSQL RDS  │
-                                                │   (Database)    │
-                                                └─────────────────┘
-```
-
-## 📁 Project Structure
-
-```
-serverless-baby-raffle/
-├── frontend/                 # React SPA with Vite
-│   ├── src/
-│   │   ├── config/           # Configuration system
-│   │   ├── pages/            # React Router pages
-│   │   ├── components/       # UI components
-│   │   └── lib/              # API utilities
-│   ├── dist/                 # Build output (deployed to S3)
-│   └── package.json          # Frontend dependencies
-│
-├── backend/                  # Lambda functions
-│   ├── functions/
-│   │   ├── bets.js           # Bet management
-│   │   ├── categories.js     # Category management
-│   │   ├── admin.js          # Admin operations
-│   │   └── stats.js          # Statistics
-│   ├── lib/                  # Database utilities
-│   └── serverless.yml       # Serverless configuration
-│
-├── infrastructure/           # CloudFormation templates
-│   ├── frontend-infrastructure.yml    # S3 + CloudFront
-│   └── database-infrastructure.yml    # RDS PostgreSQL
-│
-├── deploy-serverless.sh      # Main deployment script
-└── deploy-serverless-margo.sh # Margo-specific deployment
-```
-
-## ⚡ Features
-
-### 🎨 Fully Configurable
-- **Event details**: Names, titles, messages
-- **Betting categories**: Add, remove, customize
-- **Payment integration**: Venmo username and instructions
-- **Social sharing**: Custom text and branding
-- **Images**: Easy slideshow customization
-
-### 🔒 Production Ready
-- **SSL encryption**: Automatic HTTPS via CloudFront
-- **CORS configured**: Secure cross-origin requests
-- **Input validation**: Comprehensive data sanitization
-- **Admin authentication**: Token-based admin access
-- **Payment validation**: Manual Venmo verification workflow
-
-### 📱 Modern UX
-- **Mobile responsive**: Perfect on all devices
-- **Real-time updates**: Live prize pool calculations
-- **Social sharing**: Built-in viral sharing
-- **SPA routing**: Smooth navigation without page reloads
-- **Loading states**: Proper loading indicators
-
-## 🛠 Development
-
-### Local Development
+### 1. Backend Setup (Multi-Tenant SaaS)
 
 ```bash
-# Frontend development
-cd frontend
+# Navigate to backend directory
+cd fastapi-backend/
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration (see Environment Configuration below)
+
+# Initialize database
+python migrate_db.py
+
+# Run the development server
+uvicorn main:app --reload --port 8000
+```
+
+The backend API will be available at `http://localhost:8000`
+- API Documentation: `http://localhost:8000/docs`
+- Health Check: `http://localhost:8000/health`
+
+### 2. Frontend Setup (Optional - Legacy Single-Tenant)
+
+> **Note**: The current frontend is the old single-tenant version. You'll need to build new frontends for the multi-tenant system.
+
+```bash
+# Navigate to frontend directory
+cd frontend/
+
+# Install dependencies
 npm install
+
+# Run development server
 npm run dev
-
-# Backend development (requires AWS credentials)
-cd backend
-npm install
-serverless offline
 ```
 
-### Configuration Customization
+The frontend will be available at `http://localhost:5173`
 
-Edit `frontend/src/config/custom-config.ts`:
+## 🔧 Environment Configuration
 
-```typescript
-import { AppConfig } from './app-config';
+Create `.env` in the `fastapi-backend/` directory:
 
-export const yourConfig: AppConfig = {
-  event: {
-    parentNames: "Your Names",
-    eventTitle: "Your Baby Raffle Title",
-    // ... more settings
-  },
-  betting: {
-    pricePerBet: 5.00,
-    categories: [
-      {
-        categoryKey: "birth_date",
-        displayName: "Birth Date",
-        description: "When will baby arrive?",
-        placeholder: "e.g., March 15, 2024"
-      },
-      // ... more categories
-    ]
-  },
-  // ... payment, social, images, admin config
-};
+```env
+# Database
+DATABASE_URL=postgresql://username:password@localhost:5432/baby_raffle_saas
+
+# JWT Authentication
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# OAuth - Google
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# OAuth - Apple
+APPLE_CLIENT_ID=your-apple-client-id
+APPLE_TEAM_ID=your-apple-team-id
+APPLE_KEY_ID=your-apple-key-id
+APPLE_PRIVATE_KEY=your-apple-private-key
+
+# Domain Configuration
+BASE_DOMAIN=base2ml.com
+ONBOARDING_SUBDOMAIN=mybabyraffle
+
+# CORS
+ALLOWED_ORIGINS=https://*.base2ml.com,https://mybabyraffle.base2ml.com,http://localhost:3000
+
+# Environment
+ENVIRONMENT=development
+DEBUG=True
 ```
 
-## 🚀 Deployment Process
+## 🐳 Docker Deployment
 
-### Automated Deployment
-1. **Database**: PostgreSQL RDS with secrets management
-2. **Backend**: Lambda functions + API Gateway
-3. **Frontend**: S3 static hosting + CloudFront CDN
-4. **DNS**: Route53 record for custom domain
+### Build and Run with Docker
 
-### What Gets Created
-- **3 CloudFormation stacks**: Database, Backend, Frontend
-- **Lambda functions**: 4 functions for API endpoints
-- **S3 bucket**: Static website hosting
-- **CloudFront distribution**: Global CDN
-- **API Gateway**: RESTful API endpoints
-- **RDS instance**: PostgreSQL database
-- **Secrets**: Database credentials in AWS Secrets Manager
+```bash
+cd fastapi-backend/
 
-## 💰 Cost Breakdown
+# Build the Docker image
+docker build -t baby-raffle-saas .
 
-### Typical Baby Raffle Usage (50 participants, 200 bets)
-- **Lambda**: ~$0.50/month
-- **API Gateway**: ~$0.10/month  
-- **S3**: ~$0.25/month
-- **CloudFront**: ~$0.50/month
-- **RDS**: ~$15/month (smallest instance)
-- **Route53**: ~$0.50/month
-- **Total**: ~$17/month vs $50+/month for always-on servers
-
-### For Multiple Events
-- **Shared database**: All events can use same RDS instance
-- **Separate frontends**: Each event gets own S3/CloudFront
-- **Cost per additional event**: ~$2/month
-
-## 🔧 Customization Examples
-
-### Add New Betting Category
-```typescript
-{
-  categoryKey: "birth_time",
-  displayName: "Time of Birth",
-  description: "What time will baby be born?",
-  placeholder: "e.g., 3:30 AM"
-}
+# Run the container
+docker run -p 8000:8000 --env-file .env baby-raffle-saas
 ```
 
-### Change Prize Structure
-```typescript
-betting: {
-  pricePerBet: 10.00,     // $10 instead of $5
-  winnerPercentage: 0.75  // Winner gets 75% instead of 50%
-}
+### Deploy to Railway
+
+```bash
+cd fastapi-backend/
+
+# Install Railway CLI
+curl -fsSL https://railway.app/install.sh | sh
+
+# Login to Railway
+railway login
+
+# Deploy using the automated script
+./deploy.sh
+
+# Or deploy manually
+railway up
 ```
 
-### Custom Payment Method
-```typescript
-payment: {
-  venmoUsername: "@YourCashApp",
-  paymentInstructions: "Send payment via Cash App",
-  paymentNote: "Include 'Baby Bet' in the note"
-}
+## 📊 Database Schema
+
+The system uses PostgreSQL with Row-Level Security for complete tenant isolation:
+
+### Core Tables
+- **`tenants`** - Tenant information with settings and subscriptions
+- **`users`** - User accounts with tenant association and roles  
+- **`raffle_categories`** - Betting categories per tenant
+- **`bets`** - Individual betting records with validation
+- **`oauth_sessions`** - OAuth token management
+- **`audit_logs`** - Comprehensive audit trail
+
+### Security Features
+- **Row-Level Security (RLS)** for complete tenant data isolation
+- **Foreign Key Constraints** ensuring data integrity
+- **Optimized Indexes** for multi-tenant query performance
+- **Materialized Views** for real-time analytics
+
+## 🔐 Authentication Flow
+
+1. User visits onboarding site (`mybabyraffle.base2ml.com`)
+2. Selects OAuth provider (Google/Apple)
+3. Completes OAuth flow with secure token exchange
+4. Creates or links account in selected tenant
+5. Receives JWT token with tenant context
+6. Accesses tenant-specific resources with automatic RLS isolation
+
+## 🌐 Multi-Tenant Architecture
+
+### Domain Structure
+- **`mybabyraffle.base2ml.com`** - Onboarding and tenant creation
+- **`{subdomain}.base2ml.com`** - Individual tenant raffle sites
+- **`api.base2ml.com`** - Backend API (alternative routing)
+
+### Tenant Capabilities
+- **Create and manage** raffle categories
+- **Customize branding** and settings
+- **User management** with role-based permissions
+- **Bet validation** and approval workflows
+- **Comprehensive analytics** and statistics
+- **Rate limiting** per tenant tier
+
+## 🔧 API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - Generate OAuth authorization URL
+- `POST /api/auth/callback` - Handle OAuth callback
+
+### Tenant Management  
+- `POST /api/tenant/create` - Create new tenant
+- `GET /api/tenant/validate-subdomain/{subdomain}` - Check availability
+- `GET /api/tenant/info` - Get tenant information
+- `PUT /api/tenant/settings` - Update tenant settings
+- `GET /api/tenant/stats` - Get tenant statistics
+
+### Raffle Operations
+- `GET /api/categories` - Get raffle categories
+- `POST /api/categories` - Create category (admin)
+- `POST /api/bets/submit` - Submit bets
+- `GET /api/bets` - Get bets (admin)
+- `POST /api/bets/validate` - Validate bets (admin)
+
+### System Administration
+- `GET /api/admin/tenants` - List all tenants (super admin)
+- `GET /health` - Health check
+- `GET /docs` - API documentation
+
+## 🧪 Testing
+
+### Test the Deployment
+```bash
+cd fastapi-backend/
+
+# Test local deployment
+python test_deployment.py http://localhost:8000
+
+# Test production deployment  
+python test_deployment.py https://your-app.railway.app
 ```
 
-## 🎯 Perfect For
+### Manual API Testing
+```bash
+# Health check
+curl http://localhost:8000/health
 
-- **Baby showers**: Interactive prediction games
-- **Gender reveals**: Betting on baby details
-- **Office pools**: Workplace baby betting
-- **Family events**: Multi-generational fun
-- **Virtual celebrations**: Remote-friendly participation
+# Check subdomain availability
+curl http://localhost:8000/api/tenant/validate-subdomain/test-tenant
 
-## 📊 Admin Features
+# API documentation
+open http://localhost:8000/docs
+```
 
-Access admin panel at `/admin`:
-- **View all bets**: Complete overview with filtering
-- **Validate payments**: Mark Venmo payments as verified  
-- **Prize pool management**: Real-time totals per category
-- **Export data**: Download for winner determination
-- **Statistics dashboard**: Comprehensive analytics
+## 📁 Repository Structure
+
+```
+baby-raffle-serverless/
+├── fastapi-backend/              # Multi-tenant SaaS backend
+│   ├── main.py                   # FastAPI application
+│   ├── models.py                 # Pydantic models
+│   ├── database.py               # Database connection manager
+│   ├── oauth.py                  # OAuth2 authentication
+│   ├── tenant_service.py         # Tenant management
+│   ├── middleware.py             # Security & context middleware
+│   ├── raffle_service.py         # Raffle operations
+│   ├── schema.sql                # Database schema
+│   ├── migrate_db.py             # Database migrations
+│   ├── deploy.sh                 # Automated deployment
+│   ├── test_deployment.py        # Deployment testing
+│   ├── requirements.txt          # Python dependencies
+│   ├── Dockerfile                # Container configuration
+│   ├── railway.json              # Railway deployment config
+│   └── .env.example              # Environment template
+└── frontend/                     # Legacy single-tenant frontend
+    ├── src/                      # React TypeScript source
+    ├── public/                   # Static assets
+    ├── package.json              # Node.js dependencies
+    └── vite.config.ts            # Vite configuration
+```
+
+## 🎯 Current Status
+
+### ✅ Completed (Production Ready)
+- **Multi-tenant backend** with complete tenant isolation
+- **OAuth2 authentication** with Google and Apple
+- **Database schema** with Row-Level Security
+- **Rate limiting** and security middleware  
+- **API documentation** and health monitoring
+- **Docker deployment** configuration
+- **Railway deployment** automation
+
+### 🚧 Next Steps (Frontend Development)
+- **Onboarding frontend** for tenant creation at `mybabyraffle.base2ml.com`
+- **Tenant dashboard** for raffle management
+- **Participant interface** for placing bets  
+- **Real-time updates** with WebSocket/polling
+- **Payment processing** integration
+- **Mobile app** development
+
+## 📝 Development
+
+### Running in Development Mode
+```bash
+# Backend with auto-reload
+cd fastapi-backend/
+uvicorn main:app --reload --port 8000
+
+# Frontend with hot reload
+cd frontend/
+npm run dev
+```
+
+### Database Management
+```bash
+# Run migrations
+python migrate_db.py
+
+# Connect to database
+psql $DATABASE_URL
+
+# View RLS policies
+\d+ tenants
+```
 
 ## 🔒 Security Features
 
-- **HTTPS everywhere**: SSL termination at CloudFront
-- **CORS protection**: Proper cross-origin policies
-- **Input validation**: Server-side data sanitization
-- **Admin tokens**: Secure admin panel access
-- **AWS IAM**: Least-privilege access controls
-- **Secrets management**: Database credentials encrypted
+- **Row-Level Security** for complete tenant data isolation
+- **JWT tokens** with tenant context and expiration
+- **OAuth2 integration** with secure state management
+- **Rate limiting** with per-tenant quotas
+- **CORS configuration** for domain security
+- **Input validation** with Pydantic models
+- **Comprehensive error handling** with unique error IDs
 
-## 📞 Support & Maintenance
+## 📊 Monitoring & Logging
 
-### Self-Service
-- **Logs**: CloudWatch logs for debugging
-- **Monitoring**: Built-in AWS monitoring
-- **Scaling**: Automatic with zero configuration
+- **Health check endpoints** for load balancers
+- **Request logging** with tenant context
+- **Error tracking** with unique error IDs
+- **Performance metrics** through middleware
+- **Rate limit monitoring** for abuse detection
 
-### Updates
-- **Code changes**: Redeploy with single command
-- **Infrastructure**: CloudFormation manages updates
-- **Dependencies**: Automated vulnerability scanning
+## 🤝 Contributing
 
----
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
 
-**Built for scale, optimized for cost, designed for joy!** 🎉
+## 📄 License
 
-Transform any baby celebration into an engaging, cost-effective, serverless experience.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🎉 Success!
+
+The Baby Raffle application has been successfully transformed into a complete, production-ready multi-tenant SaaS platform! Users can now create their own raffle sites with OAuth authentication, complete tenant isolation, and comprehensive management features.
