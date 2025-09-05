@@ -5,8 +5,9 @@ A complete multi-tenant SaaS platform that allows users to create and deploy the
 ## 🏗️ Architecture
 
 - **Backend**: FastAPI with PostgreSQL and Row-Level Security for tenant isolation
+- **Marketing Site**: Next.js 14 with TypeScript - conversion-focused marketing website
 - **Frontend**: React + TypeScript with Vite (legacy single-tenant example)
-- **Authentication**: OAuth2 with Google and Apple Sign-In
+- **Authentication**: OAuth2 with Google and GitHub Sign-In
 - **Database**: PostgreSQL with advanced multi-tenant isolation
 - **Deployment**: Docker + Railway.app ready
 
@@ -47,7 +48,26 @@ The backend API will be available at `http://localhost:8000`
 - API Documentation: `http://localhost:8000/docs`
 - Health Check: `http://localhost:8000/health`
 
-### 2. Frontend Setup (Optional - Legacy Single-Tenant)
+### 2. Marketing Site Setup (Next.js)
+
+```bash
+# Navigate to marketing site directory
+cd marketing-site/
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your configuration
+
+# Run development server
+npm run dev
+```
+
+The marketing site will be available at `http://localhost:3000`
+
+### 3. Frontend Setup (Optional - Legacy Single-Tenant)
 
 > **Note**: The current frontend is the old single-tenant version. You'll need to build new frontends for the multi-tenant system.
 
@@ -242,6 +262,17 @@ baby-raffle-serverless/
 │   ├── Dockerfile                # Container configuration
 │   ├── railway.json              # Railway deployment config
 │   └── .env.example              # Environment template
+├── marketing-site/               # Next.js marketing website
+│   ├── src/                      # TypeScript source code
+│   │   ├── app/                  # Next.js App Router
+│   │   ├── components/           # React components
+│   │   └── lib/                  # Utility functions
+│   ├── public/                   # Static assets
+│   ├── package.json              # Node.js dependencies
+│   ├── next.config.js            # Next.js configuration
+│   ├── tailwind.config.js        # Tailwind CSS config
+│   ├── deploy.sh                 # Deployment script
+│   └── README.md                 # Marketing site documentation
 └── frontend/                     # Legacy single-tenant frontend
     ├── src/                      # React TypeScript source
     ├── public/                   # Static assets
@@ -253,19 +284,20 @@ baby-raffle-serverless/
 
 ### ✅ Completed (Production Ready)
 - **Multi-tenant backend** with complete tenant isolation
-- **OAuth2 authentication** with Google and Apple
+- **OAuth2 authentication** with Google and GitHub
+- **Marketing website** with conversion optimization
 - **Database schema** with Row-Level Security
 - **Rate limiting** and security middleware  
 - **API documentation** and health monitoring
 - **Docker deployment** configuration
 - **Railway deployment** automation
 
-### 🚧 Next Steps (Frontend Development)
-- **Onboarding frontend** for tenant creation at `mybabyraffle.base2ml.com`
-- **Tenant dashboard** for raffle management
-- **Participant interface** for placing bets  
+### 🚧 Next Steps (Application Development)
+- **Tenant dashboard** for raffle management and customization
+- **Participant interface** for placing bets and viewing results
 - **Real-time updates** with WebSocket/polling
-- **Payment processing** integration
+- **Payment processing** integration (Stripe/PayPal)
+- **Email notifications** and automated workflows
 - **Mobile app** development
 
 ## 📝 Development

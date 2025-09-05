@@ -21,12 +21,12 @@ command_exists() {
 # Check prerequisites
 echo "🔍 Checking prerequisites..."
 
-if ! command_exists python; then
+if ! command_exists python3; then
     echo "❌ Python is not installed. Please install Python 3.11+"
     exit 1
 fi
 
-if ! command_exists pip; then
+if ! command_exists pip3; then
     echo "❌ pip is not installed. Please install pip"
     exit 1
 fi
@@ -39,7 +39,7 @@ cd fastapi-backend/
 # Check if virtual environment exists
 if [ ! -d "venv" ]; then
     echo "📦 Creating virtual environment..."
-    python -m venv venv
+    python3 -m venv venv
 fi
 
 # Activate virtual environment
@@ -48,7 +48,8 @@ source venv/bin/activate
 
 # Check if requirements are installed
 echo "📚 Installing/updating dependencies..."
-pip install -q -r requirements.txt
+# Use simplified requirements for Python 3.13 compatibility
+pip3 install -q -r requirements-simple.txt
 
 # Check if .env file exists
 if [ ! -f ".env" ]; then
@@ -83,7 +84,7 @@ read -p "Do you want to run database migrations? (y/n): " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "🔄 Running database migrations..."
-    python migrate_db.py || echo "⚠️  Migration failed - continuing with existing database"
+    python3 migrate_db.py || echo "⚠️  Migration failed - continuing with existing database"
 else
     echo "⏭️  Skipping database migration"
 fi
@@ -97,5 +98,6 @@ echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""
 
-# Start the FastAPI server
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+# Start the FastAPI server (using simple server for Python 3.13 compatibility)
+echo "🚀 Starting with basic server - for full multi-tenant features, upgrade to Python 3.11"
+python3 simple_server.py

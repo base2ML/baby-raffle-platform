@@ -1,54 +1,78 @@
 #!/bin/bash
 set -e
 
-# Baby Raffle SaaS Multi-Tenant Deployment Script
-echo "🚀 Deploying Baby Raffle SaaS Multi-Tenant System"
+# Baby Raffle SaaS Deployment Script
+echo "🚀 Deploying Baby Raffle SaaS Platform"
+echo "========================================="
+
+# Function to check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
 
 # Check if Railway CLI is installed
-if ! command -v railway &> /dev/null; then
-    echo "❌ Railway CLI not found. Please install it first:"
-    echo "   curl -fsSL https://railway.app/install.sh | sh"
-    exit 1
+if ! command_exists railway; then
+    echo "❌ Railway CLI not found. Installing..."
+    if command_exists npm; then
+        npm install -g @railway/cli
+    elif command_exists curl; then
+        curl -fsSL https://railway.app/install.sh | sh
+    else
+        echo "❌ Please install npm or curl first, then run:"
+        echo "   npm install -g @railway/cli"
+        echo "   OR"  
+        echo "   curl -fsSL https://railway.app/install.sh | sh"
+        exit 1
+    fi
 fi
 
 # Check if logged in to Railway
 if ! railway whoami &> /dev/null; then
-    echo "❌ Not logged in to Railway. Please run: railway login"
-    exit 1
+    echo "🔐 Logging in to Railway..."
+    echo "Please complete the login process in your browser"
+    railway login
 fi
 
-echo "✅ Railway CLI found and authenticated"
+echo "✅ Railway CLI ready and authenticated"
 
 # Create or link Railway project
 echo "📦 Setting up Railway project..."
-if [ ! -f ".railway" ]; then
-    echo "Creating new Railway project for Baby Raffle SaaS..."
-    railway up --service fastapi-backend
+if [ ! -f ".railway" ] && [ ! -f "railway.toml" ]; then
+    echo "🆕 Creating new Railway project..."
+    railway init baby-raffle-saas
+    echo "✅ Railway project created"
 else
-    echo "Using existing Railway project"
+    echo "✅ Using existing Railway project"
 fi
 
+# Add PostgreSQL database
+echo "🗄️  Setting up PostgreSQL database..."
+if ! railway plugins | grep -q "postgresql"; then
+    railway add postgresql
+    echo "✅ PostgreSQL database added"
+else
+    echo "✅ PostgreSQL already configured"
+fi
+
+# Generate secure JWT secret
+echo "🔐 Generating secure JWT secret..."
+JWT_SECRET=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))" 2>/dev/null || openssl rand -base64 32)
+
 # Set up environment variables
-echo "🔧 Setting up environment variables..."
+echo "⚙️  Configuring environment variables..."
 
 # Core application settings
 railway variables set ENVIRONMENT=production
-railway variables set LOG_LEVEL=INFO
+railway variables set LOG_LEVEL=INFO  
 railway variables set DEBUG=false
+railway variables set JWT_SECRET="$JWT_SECRET"
+railway variables set PYTHON_VERSION=3.11
 
-# Database (Railway PostgreSQL addon)
-echo "Setting up PostgreSQL database..."
-railway add postgresql
-
-# JWT and security
-echo "⚠️  IMPORTANT: You need to set these secrets manually in Railway dashboard:"
-echo "   - JWT_SECRET (use a secure random string)"
-echo "   - GOOGLE_CLIENT_ID"
-echo "   - GOOGLE_CLIENT_SECRET"
-echo "   - APPLE_CLIENT_ID"
-echo "   - APPLE_TEAM_ID"
-echo "   - APPLE_KEY_ID"
-echo "   - APPLE_PRIVATE_KEY"
+echo "✅ Core environment configured"
+echo ""
+echo "🔑 IMPORTANT: Configure OAuth in Railway dashboard:"
+echo "   railway variables set GOOGLE_CLIENT_ID=your-client-id"
+echo "   railway variables set GOOGLE_CLIENT_SECRET=your-secret"
 
 # Domain configuration
 railway variables set BASE_DOMAIN=base2ml.com

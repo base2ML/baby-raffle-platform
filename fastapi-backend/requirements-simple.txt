@@ -1,0 +1,6 @@
+# Minimal requirements that work with Python 3.13
+fastapi
+uvicorn
+python-multipart
+python-dotenv
+aiosqlite

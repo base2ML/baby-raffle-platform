@@ -1,0 +1,19 @@
+{
+  "name": "baby-raffle-deployment-scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Build and deployment scripts for Baby Raffle SaaS tenant sites",
+  "scripts": {
+    "build-site": "node build-tenant-site.js",
+    "deploy-site": "node deploy-tenant-site.js",
+    "setup-infrastructure": "node setup-infrastructure.js"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1691.0",
+    "dotenv": "^16.4.5",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}

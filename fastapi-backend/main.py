@@ -2,31 +2,44 @@
 Multi-tenant Baby Raffle SaaS Application
 FastAPI backend with OAuth2 authentication and tenant isolation
 """
-from fastapi import FastAPI, HTTPException, status, Depends, Request, Response
+from fastapi import FastAPI, HTTPException, status, Depends, Request, Response, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
 from fastapi.security import HTTPBearer
+from fastapi.staticfiles import StaticFiles
 import logging
 import os
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from .database import db_manager
-from .middleware import (
-    tenant_context_middleware, auth_middleware, rate_limit_middleware,
-    get_tenant_context, get_current_tenant, require_tenant,
-    get_current_user, require_user, require_role
-)
-from .oauth import oauth_service
-from .tenant_service import tenant_service
-from .models import (
+# Use simplified imports for direct execution
+try:
+    from database import db_manager
+    from oauth import oauth_service
+    from tenant_service import tenant_service
+except ImportError:
+    # Fallback for development
+    import sys
+    sys.path.append('.')
+    from database import db_manager
+    oauth_service = None
+    tenant_service = None
+from models import (
     TenantCreate, TenantResponse, TenantSettings, UserCreate, UserResponse,
     OAuthLoginRequest, OAuthCallbackRequest, TokenResponse,
     RaffleCategoryCreate, RaffleCategoryResponse,
     BetCreate, BetSubmission, BetResponse, BetValidationRequest,
     TenantStats, ErrorResponse, OAuthProvider,
-    TenantRecord, UserRecord
+    TenantRecord, UserRecord,
+    # New models for extended functionality
+    PaymentIntentCreate, PaymentIntentResponse, SubscriptionCreate, 
+    SubscriptionResponse, BillingPortalRequest, BillingPortalResponse,
+    FileUploadResponse, SlideshowImageCreate, SlideshowImageResponse,
+    SiteConfigUpdate, SiteConfigResponse, DeploymentRequest, DeploymentResponse
 )
+from payment_service import payment_service
+from file_service import file_service
+from site_config_service import site_config_service
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -80,6 +93,11 @@ async def rate_limit_middleware_handler(request: Request, call_next):
     await rate_limit_middleware.check_rate_limit(request)
     response = await call_next(request)
     return response
+
+# Mount static files for uploads
+upload_dir = os.getenv("UPLOAD_DIR", "./uploads")
+if os.path.exists(upload_dir):
+    app.mount("/files", StaticFiles(directory=upload_dir), name="files")
 
 # Health check endpoint
 @app.get("/health", include_in_schema=False)
@@ -530,6 +548,258 @@ async def validate_bets(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to validate bets"
         )
+
+# ============================================================================
+# PAYMENT AND BILLING ENDPOINTS
+# ============================================================================
+
+@app.post("/api/payments/create-intent", response_model=PaymentIntentResponse)
+async def create_payment_intent(
+    payment_request: PaymentIntentCreate,
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_role("admin"))
+):
+    """Create payment intent for setup fee (admin+ required)"""
+    return await payment_service.create_payment_intent(tenant.id, payment_request)
+
+@app.post("/api/subscriptions/create", response_model=SubscriptionResponse)
+async def create_subscription(
+    subscription_request: SubscriptionCreate,
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_role("admin"))
+):
+    """Create subscription (admin+ required)"""
+    return await payment_service.create_subscription(tenant.id, subscription_request)
+
+@app.get("/api/subscriptions/current", response_model=Optional[SubscriptionResponse])
+async def get_current_subscription(
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_user)
+):
+    """Get current subscription for tenant"""
+    subscription = await payment_service.get_tenant_subscription(tenant.id)
+    if not subscription:
+        return None
+    
+    return SubscriptionResponse(
+        id=subscription.id,
+        tenant_id=subscription.tenant_id,
+        stripe_subscription_id=subscription.stripe_subscription_id,
+        plan=subscription.plan,
+        status=subscription.status,
+        current_period_start=subscription.current_period_start,
+        current_period_end=subscription.current_period_end,
+        trial_end=subscription.trial_end,
+        created_at=subscription.created_at,
+        updated_at=subscription.updated_at
+    )
+
+@app.post("/api/billing/portal", response_model=BillingPortalResponse)
+async def create_billing_portal_session(
+    request: BillingPortalRequest,
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_role("admin"))
+):
+    """Create billing portal session (admin+ required)"""
+    portal_url = await payment_service.create_billing_portal_session(
+        tenant.id, request.return_url
+    )
+    return BillingPortalResponse(url=portal_url)
+
+@app.get("/api/payments/pricing")
+async def get_pricing_config():
+    """Get pricing configuration"""
+    return await payment_service.get_pricing_config()
+
+@app.post("/api/webhooks/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhook events"""
+    payload = await request.body()
+    signature = request.headers.get("stripe-signature")
+    
+    if not signature:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing stripe signature"
+        )
+    
+    return await payment_service.handle_webhook_event(payload, signature)
+
+# ============================================================================
+# FILE UPLOAD ENDPOINTS
+# ============================================================================
+
+@app.post("/api/files/upload", response_model=FileUploadResponse)
+async def upload_file(
+    file: UploadFile = File(...),
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_role("admin"))
+):
+    """Upload image file (admin+ required)"""
+    return await file_service.upload_image(file, tenant.id)
+
+@app.get("/api/files", response_model=List[FileUploadResponse])
+async def get_files(
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_user),
+    limit: int = 50,
+    offset: int = 0
+):
+    """Get uploaded files for tenant"""
+    files = await file_service.get_tenant_files(tenant.id, limit, offset)
+    return [
+        FileUploadResponse(
+            id=f.id,
+            filename=f.filename,
+            original_filename=f.original_filename,
+            url=f.url,
+            size=f.size,
+            content_type=f.content_type,
+            created_at=f.created_at
+        ) for f in files
+    ]
+
+@app.delete("/api/files/{file_id}")
+async def delete_file(
+    file_id: str,
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_role("admin"))
+):
+    """Delete file (admin+ required)"""
+    success = await file_service.delete_file(file_id, tenant.id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found"
+        )
+    
+    return {"success": True, "message": "File deleted successfully"}
+
+# ============================================================================
+# SLIDESHOW MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@app.post("/api/slideshow/add", response_model=SlideshowImageResponse)
+async def add_to_slideshow(
+    file_id: str = Form(...),
+    title: Optional[str] = Form(None),
+    caption: Optional[str] = Form(None),
+    display_order: int = Form(0),
+    is_active: bool = Form(True),
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_role("admin"))
+):
+    """Add image to slideshow (admin+ required)"""
+    slideshow_data = SlideshowImageCreate(
+        title=title,
+        caption=caption,
+        display_order=display_order,
+        is_active=is_active
+    )
+    return await file_service.add_to_slideshow(file_id, tenant.id, slideshow_data)
+
+@app.get("/api/slideshow", response_model=List[SlideshowImageResponse])
+async def get_slideshow_images(tenant: TenantRecord = Depends(require_tenant)):
+    """Get slideshow images for tenant"""
+    return await file_service.get_slideshow_images(tenant.id)
+
+@app.put("/api/slideshow/{slideshow_id}", response_model=SlideshowImageResponse)
+async def update_slideshow_image(
+    slideshow_id: str,
+    title: Optional[str] = Form(None),
+    caption: Optional[str] = Form(None),
+    display_order: int = Form(0),
+    is_active: bool = Form(True),
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_role("admin"))
+):
+    """Update slideshow image (admin+ required)"""
+    update_data = SlideshowImageCreate(
+        title=title,
+        caption=caption,
+        display_order=display_order,
+        is_active=is_active
+    )
+    
+    result = await file_service.update_slideshow_image(
+        slideshow_id, tenant.id, update_data
+    )
+    
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Slideshow image not found"
+        )
+    
+    return result
+
+@app.delete("/api/slideshow/{slideshow_id}")
+async def remove_from_slideshow(
+    slideshow_id: str,
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_role("admin"))
+):
+    """Remove image from slideshow (admin+ required)"""
+    success = await file_service.remove_from_slideshow(slideshow_id, tenant.id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Slideshow image not found"
+        )
+    
+    return {"success": True, "message": "Image removed from slideshow"}
+
+# ============================================================================
+# SITE CONFIGURATION ENDPOINTS
+# ============================================================================
+
+@app.get("/api/site-config", response_model=SiteConfigResponse)
+async def get_site_config(tenant: TenantRecord = Depends(require_tenant)):
+    """Get site configuration for tenant"""
+    config = await site_config_service.get_site_config(tenant.id)
+    return SiteConfigResponse(
+        id=config.id,
+        tenant_id=config.tenant_id,
+        config=config.config,
+        created_at=config.created_at,
+        updated_at=config.updated_at
+    )
+
+@app.put("/api/site-config", response_model=SiteConfigResponse)
+async def update_site_config(
+    updates: SiteConfigUpdate,
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_role("admin"))
+):
+    """Update site configuration (admin+ required)"""
+    return await site_config_service.update_site_config(tenant.id, updates)
+
+@app.get("/api/site-config/preview")
+async def get_site_preview_data(tenant: TenantRecord = Depends(require_tenant)):
+    """Get all data for site preview"""
+    return await site_config_service.get_site_preview_data(tenant.id)
+
+# ============================================================================
+# DEPLOYMENT ENDPOINTS
+# ============================================================================
+
+@app.post("/api/deploy", response_model=DeploymentResponse)
+async def trigger_deployment(
+    request: DeploymentRequest,
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_role("admin"))
+):
+    """Trigger site deployment (admin+ required)"""
+    return await site_config_service.trigger_deployment(tenant.id, request)
+
+@app.get("/api/deployments", response_model=List[DeploymentResponse])
+async def get_deployment_history(
+    tenant: TenantRecord = Depends(require_tenant),
+    user: UserRecord = Depends(require_role("admin")),
+    limit: int = 20
+):
+    """Get deployment history (admin+ required)"""
+    return await site_config_service.get_deployment_history(tenant.id, limit)
 
 # ============================================================================
 # SUPER ADMIN ENDPOINTS

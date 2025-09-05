@@ -9,26 +9,34 @@ cd baby-raffle-serverless/
 
 **That's it!** The system will automatically:
 - ✅ Set up Python virtual environment
-- ✅ Install all dependencies 
-- ✅ Guide you through configuration
-- ✅ Start the multi-tenant SaaS backend
+- ✅ Install simplified dependencies (compatible with Python 3.13)
+- ✅ Set up SQLite database
+- ✅ Start a basic API server
 - ✅ Make it available at http://localhost:8000
+
+> **Note**: For Python 3.13 compatibility, we use a simplified server. For full multi-tenant features, use Python 3.11.
 
 ## 🎯 What You Get
 
-### Multi-Tenant SaaS Backend (Production Ready)
+### Basic API Server (Python 3.13 Compatible)
 - **API Server**: http://localhost:8000
-- **Interactive Docs**: http://localhost:8000/docs  
 - **Health Check**: http://localhost:8000/health
+- **Root Endpoint**: http://localhost:8000/
 
-### Key Features Working Out of the Box
-- ✅ **Multi-tenant architecture** with complete data isolation
-- ✅ **OAuth2 authentication** (Google & Apple ready)
-- ✅ **Tenant management** (create, configure, manage)  
-- ✅ **User management** with role-based permissions
-- ✅ **Raffle operations** (categories, bets, validation)
-- ✅ **Rate limiting** and security middleware
-- ✅ **Comprehensive API** with interactive documentation
+### Available Now (Python 3.13)
+- ✅ **Basic FastAPI server** with CORS support
+- ✅ **SQLite database** setup and migrations
+- ✅ **Health check endpoint** for monitoring
+- ✅ **Clean project structure** ready for development
+
+### Full Features Available (Python 3.11)
+- 🔄 **Multi-tenant architecture** with complete data isolation
+- 🔄 **OAuth2 authentication** (Google & Apple ready)
+- 🔄 **Tenant management** (create, configure, manage)  
+- 🔄 **User management** with role-based permissions
+- 🔄 **Raffle operations** (categories, bets, validation)
+- 🔄 **Rate limiting** and security middleware
+- 🔄 **Interactive API documentation** (/docs endpoint)
 
 ## 📁 Clean Repository Structure
 
@@ -80,11 +88,12 @@ baby-raffle-serverless/                 # ← You are here
 # Test health check
 curl http://localhost:8000/health
 
-# Test subdomain validation
-curl http://localhost:8000/api/tenant/validate-subdomain/test-company
+# Test root endpoint  
+curl http://localhost:8000/
 
-# Or use the interactive API docs
-open http://localhost:8000/docs
+# Expected responses:
+# Health: {"status":"healthy","service":"baby-raffle-saas"}
+# Root: {"message":"Baby Raffle SaaS API is running!","status":"ok"}
 ```
 
 ### 3. Start Frontend (Optional - Legacy)
@@ -95,6 +104,42 @@ cd frontend/
 - Runs the old single-tenant frontend
 - Available at http://localhost:5173
 - **Note**: This is the legacy version - you'll build new frontends for the multi-tenant system
+
+## 🚀 Upgrading to Full Multi-Tenant Features
+
+To access all multi-tenant SaaS features, you'll need Python 3.11:
+
+### Option 1: Install Python 3.11 via pyenv (Recommended)
+```bash
+# Install pyenv if not already installed
+curl https://pyenv.run | bash
+
+# Install and use Python 3.11
+pyenv install 3.11.9
+pyenv local 3.11.9
+
+# Restart the setup with full requirements
+cd fastapi-backend/
+rm -rf venv/  # Remove old virtual environment
+pip3 install -r requirements.txt  # Use full requirements
+python3 main.py  # Run full multi-tenant server
+```
+
+### Option 2: Use Docker
+```bash
+cd fastapi-backend/
+docker build -t baby-raffle-saas .
+docker run -p 8000:8000 --env-file .env baby-raffle-saas
+```
+
+### What You Get with Full Features:
+- 📊 Interactive API documentation at `/docs`
+- 🏢 Multi-tenant architecture with tenant isolation
+- 🔐 OAuth2 authentication (Google & Apple)
+- 👥 Complete user and tenant management
+- 🎲 Raffle categories and betting operations
+- 📈 Analytics and statistics
+- 🛡️ Security middleware and rate limiting
 
 ## 🔧 Configuration Options
 

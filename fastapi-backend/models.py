@@ -30,6 +30,28 @@ class OAuthProvider(str, Enum):
     APPLE = "apple"
     EMAIL = "email"
 
+class SubscriptionPlan(str, Enum):
+    TRIAL = "trial"
+    BASIC = "basic" 
+    PREMIUM = "premium"
+
+class SubscriptionStatus(str, Enum):
+    ACTIVE = "active"
+    PAST_DUE = "past_due"
+    CANCELED = "canceled"
+    INCOMPLETE = "incomplete"
+    INCOMPLETE_EXPIRED = "incomplete_expired"
+    TRIALING = "trialing"
+    UNPAID = "unpaid"
+
+class PaymentStatus(str, Enum):
+    PENDING = "pending"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    CANCELED = "canceled"
+    PROCESSING = "processing"
+    REQUIRES_ACTION = "requires_action"
+
 # Pydantic Models for API requests/responses
 
 class TenantCreate(BaseModel):
@@ -329,3 +351,173 @@ DEFAULT_CATEGORIES = [
         ]
     }
 ]
+
+# Payment and Billing Models
+class PaymentIntentCreate(BaseModel):
+    amount: float = Field(..., gt=0, description="Payment amount in dollars")
+    currency: str = Field(default="usd", description="Payment currency")
+    description: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+class PaymentIntentResponse(BaseModel):
+    id: str
+    client_secret: str
+    amount: float
+    currency: str
+    status: PaymentStatus
+    created_at: datetime
+
+class SubscriptionCreate(BaseModel):
+    plan: SubscriptionPlan
+    payment_method_id: str
+    trial_days: Optional[int] = None
+
+class SubscriptionResponse(BaseModel):
+    id: str
+    tenant_id: str
+    stripe_subscription_id: str
+    plan: SubscriptionPlan
+    status: SubscriptionStatus
+    current_period_start: datetime
+    current_period_end: datetime
+    trial_end: Optional[datetime]
+    created_at: datetime
+    updated_at: datetime
+
+class BillingPortalRequest(BaseModel):
+    return_url: str
+
+class BillingPortalResponse(BaseModel):
+    url: str
+
+class WebhookEvent(BaseModel):
+    id: str
+    type: str
+    data: Dict[str, Any]
+    created: int
+
+# File Upload Models
+class FileUploadResponse(BaseModel):
+    id: str
+    filename: str
+    original_filename: str
+    url: str
+    size: int
+    content_type: str
+    created_at: datetime
+
+class SlideshowImageCreate(BaseModel):
+    title: Optional[str] = None
+    caption: Optional[str] = None
+    display_order: int = 0
+    is_active: bool = True
+
+class SlideshowImageResponse(BaseModel):
+    id: str
+    tenant_id: str
+    file_id: str
+    title: Optional[str]
+    caption: Optional[str]
+    display_order: int
+    is_active: bool
+    url: str
+    created_at: datetime
+
+# Site Configuration Models
+class SiteConfigUpdate(BaseModel):
+    # Basic Info
+    site_title: Optional[str] = None
+    welcome_message: Optional[str] = None
+    description: Optional[str] = None
+    contact_email: Optional[str] = None
+    
+    # Branding
+    primary_color: Optional[str] = None
+    secondary_color: Optional[str] = None
+    background_color: Optional[str] = None
+    logo_url: Optional[str] = None
+    favicon_url: Optional[str] = None
+    
+    # Features
+    enable_slideshow: Optional[bool] = None
+    enable_social_sharing: Optional[bool] = None
+    enable_comments: Optional[bool] = None
+    max_bets_per_user: Optional[int] = None
+    
+    # SEO
+    meta_description: Optional[str] = None
+    meta_keywords: Optional[str] = None
+    
+    # Analytics
+    google_analytics_id: Optional[str] = None
+    facebook_pixel_id: Optional[str] = None
+    
+    class Config:
+        extra = "allow"
+
+class SiteConfigResponse(BaseModel):
+    id: str
+    tenant_id: str
+    config: Dict[str, Any]
+    created_at: datetime
+    updated_at: datetime
+
+class DeploymentRequest(BaseModel):
+    force_rebuild: bool = False
+    config_only: bool = False
+
+class DeploymentResponse(BaseModel):
+    id: str
+    tenant_id: str
+    status: str
+    deployment_url: Optional[str]
+    build_log: Optional[str]
+    created_at: datetime
+
+# Database Record Models for New Features
+class SubscriptionRecord:
+    def __init__(self, record):
+        self.id = str(record['id'])
+        self.tenant_id = str(record['tenant_id'])
+        self.stripe_customer_id = record['stripe_customer_id']
+        self.stripe_subscription_id = record['stripe_subscription_id']
+        self.plan = record['plan']
+        self.status = record['status']
+        self.current_period_start = record['current_period_start']
+        self.current_period_end = record['current_period_end']
+        self.trial_end = record['trial_end']
+        self.created_at = record['created_at']
+        self.updated_at = record['updated_at']
+
+class PaymentRecord:
+    def __init__(self, record):
+        self.id = str(record['id'])
+        self.tenant_id = str(record['tenant_id'])
+        self.stripe_payment_intent_id = record['stripe_payment_intent_id']
+        self.amount = float(record['amount'])
+        self.currency = record['currency']
+        self.status = record['status']
+        self.description = record['description']
+        self.metadata = record['metadata'] or {}
+        self.created_at = record['created_at']
+        self.updated_at = record['updated_at']
+
+class FileRecord:
+    def __init__(self, record):
+        self.id = str(record['id'])
+        self.tenant_id = str(record['tenant_id'])
+        self.filename = record['filename']
+        self.original_filename = record['original_filename']
+        self.file_path = record['file_path']
+        self.url = record['url']
+        self.size = record['size']
+        self.content_type = record['content_type']
+        self.created_at = record['created_at']
+
+class SiteConfigRecord:
+    def __init__(self, record):
+        self.id = str(record['id'])
+        self.tenant_id = str(record['tenant_id'])
+        self.config = record['config'] or {}
+        self.created_at = record['created_at']
+        self.updated_at = record['updated_at']
