@@ -15,11 +15,18 @@ import os
 import re
 import jwt
 import httpx
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import sqlite3
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 import secrets
+
+# Try to import PostgreSQL, fall back to SQLite for local development
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+    HAS_POSTGRES = True
+except ImportError:
+    HAS_POSTGRES = False
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -97,52 +104,96 @@ class UserProfile(BaseModel):
 
 # Database setup
 def get_db_connection():
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    if HAS_POSTGRES and DATABASE_URL.startswith('postgresql'):
+        return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    else:
+        # Use SQLite for local development
+        return sqlite3.connect('baby_raffle.db')
 
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Users table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id VARCHAR(255) PRIMARY KEY,
-            email VARCHAR(255) UNIQUE NOT NULL,
-            name VARCHAR(255) NOT NULL,
-            picture TEXT,
-            provider VARCHAR(50) DEFAULT 'google',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+    is_postgres = HAS_POSTGRES and DATABASE_URL.startswith('postgresql')
     
-    # Sites table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sites (
-            id VARCHAR(255) PRIMARY KEY,
-            user_id VARCHAR(255) NOT NULL,
-            subdomain VARCHAR(255) UNIQUE NOT NULL,
-            package_tier VARCHAR(255) NOT NULL,
-            configuration TEXT NOT NULL,
-            status VARCHAR(50) DEFAULT 'active',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users (id)
-        )
-    ''')
-    
-    # Sessions table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sessions (
-            id VARCHAR(255) PRIMARY KEY,
-            user_id VARCHAR(255) NOT NULL,
-            site_id VARCHAR(255),
-            expires_at TIMESTAMP NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users (id),
-            FOREIGN KEY (site_id) REFERENCES sites (id)
-        )
-    ''')
+    if is_postgres:
+        # PostgreSQL schema
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id VARCHAR(255) PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                picture TEXT,
+                provider VARCHAR(50) DEFAULT 'google',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS sites (
+                id VARCHAR(255) PRIMARY KEY,
+                user_id VARCHAR(255) NOT NULL,
+                subdomain VARCHAR(255) UNIQUE NOT NULL,
+                package_tier VARCHAR(255) NOT NULL,
+                configuration TEXT NOT NULL,
+                status VARCHAR(50) DEFAULT 'active',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS sessions (
+                id VARCHAR(255) PRIMARY KEY,
+                user_id VARCHAR(255) NOT NULL,
+                site_id VARCHAR(255),
+                expires_at TIMESTAMP NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                FOREIGN KEY (site_id) REFERENCES sites (id)
+            )
+        ''')
+    else:
+        # SQLite schema
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY,
+                email TEXT UNIQUE NOT NULL,
+                name TEXT NOT NULL,
+                picture TEXT,
+                provider TEXT DEFAULT 'google',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS sites (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                subdomain TEXT UNIQUE NOT NULL,
+                package_tier TEXT NOT NULL,
+                configuration TEXT NOT NULL,
+                status TEXT DEFAULT 'active',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS sessions (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                site_id TEXT,
+                expires_at TIMESTAMP NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                FOREIGN KEY (site_id) REFERENCES sites (id)
+            )
+        ''')
     
     conn.commit()
     conn.close()
@@ -431,19 +482,29 @@ async def oauth_callback(code: str, state: Optional[str] = None):
         cursor = conn.cursor()
         
         user_id = str(uuid.uuid4())
-        cursor.execute('''
-            INSERT INTO users (id, email, name, picture, provider)
-            VALUES (%s, %s, %s, %s, %s)
-            ON CONFLICT (email) DO UPDATE SET
-            name = EXCLUDED.name,
-            picture = EXCLUDED.picture,
-            updated_at = CURRENT_TIMESTAMP
-            RETURNING id
-        ''', (user_id, user_info['email'], user_info['name'], 
-              user_info.get('picture', ''), 'google'))
         
-        result = cursor.fetchone()
-        user_id = result['id']
+        is_postgres = HAS_POSTGRES and DATABASE_URL.startswith('postgresql')
+        
+        if is_postgres:
+            cursor.execute('''
+                INSERT INTO users (id, email, name, picture, provider)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (email) DO UPDATE SET
+                name = EXCLUDED.name,
+                picture = EXCLUDED.picture,
+                updated_at = CURRENT_TIMESTAMP
+                RETURNING id
+            ''', (user_id, user_info['email'], user_info['name'], 
+                  user_info.get('picture', ''), 'google'))
+            
+            result = cursor.fetchone()
+            user_id = result['id']
+        else:
+            cursor.execute('''
+                INSERT OR REPLACE INTO users (id, email, name, picture, provider)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (user_id, user_info['email'], user_info['name'], 
+                  user_info.get('picture', ''), 'google'))
         
         conn.commit()
         conn.close()
