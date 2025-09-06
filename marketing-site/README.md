@@ -199,7 +199,7 @@ Add your preferred analytics:
 ## 📞 Support
 
 For questions or issues:
-- Email: support@mybabyraffle.com
+- Email: support@base2ml.com
 - Documentation: This README
 - API Documentation: See backend README
 

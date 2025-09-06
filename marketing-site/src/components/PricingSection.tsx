@@ -14,7 +14,7 @@ const plans = [
     badge: null,
     description: "Perfect for intimate family celebrations",
     features: [
-      "Custom subdomain (yourname.mybabyraffle.com)",
+      "Custom subdomain (yourname.base2ml.com)",
       "Up to 4 betting categories",
       "Up to 50 participants",
       "Basic theme customization",

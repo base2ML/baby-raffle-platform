@@ -79,7 +79,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <a 
-                  href="mailto:support@mybabyraffle.com" 
+                  href="mailto:support@base2ml.com" 
                   className="text-gray-400 hover:text-white transition-colors flex items-center space-x-2"
                 >
                   <Mail className="h-4 w-4" />

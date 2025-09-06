@@ -34,7 +34,7 @@ const PreviewStep: React.FC<PreviewStepProps> = ({ onNext, onBack }) => {
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               </div>
               <div className="bg-white rounded px-3 py-1 text-sm text-gray-600 flex-1">
-                {siteData.subdomain}.mybabyraffle.com
+                {siteData.subdomain}.base2ml.com
               </div>
             </div>
 

@@ -172,7 +172,7 @@ export default function GetStartedSection() {
                       className="rounded-r-none border-r-0"
                     />
                     <div className="bg-gray-100 border border-l-0 rounded-r-md px-3 py-2 text-sm text-gray-600 flex items-center">
-                      .mybabyraffle.com
+                      .base2ml.com
                     </div>
                   </div>
                   
@@ -188,7 +188,7 @@ export default function GetStartedSection() {
                       <>
                         <CheckCircle className="h-4 w-4 text-green-500" />
                         <span className="text-sm text-green-600 font-medium">
-                          {subdomain}.mybabyraffle.com is available!
+                          {subdomain}.base2ml.com is available!
                         </span>
                       </>
                     )}

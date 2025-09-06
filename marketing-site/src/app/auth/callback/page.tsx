@@ -138,7 +138,7 @@ function AuthCallbackContent() {
                   <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4">
                     <p className="text-sm text-gray-600 mb-2">Your site URL:</p>
                     <p className="font-mono text-lg font-semibold text-purple-700">
-                      {tenantInfo.tenant.subdomain}.mybabyraffle.com
+                      {tenantInfo.tenant.subdomain}.base2ml.com
                     </p>
                   </div>
                 )}
@@ -191,7 +191,7 @@ function AuthCallbackContent() {
                 </Button>
                 
                 <p className="text-xs text-gray-500">
-                  Need help? Contact support at support@mybabyraffle.com
+                  Need help? Contact support at support@base2ml.com
                 </p>
               </div>
             </div>

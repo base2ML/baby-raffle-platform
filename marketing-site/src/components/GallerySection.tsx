@@ -110,7 +110,7 @@ export default function GallerySection() {
                 <div className="absolute inset-0 bg-white/10 backdrop-blur-sm flex items-center justify-center">
                   <div className="text-center text-white">
                     <div className="text-2xl font-bold mb-2">{item.title}</div>
-                    <div className="text-sm opacity-90">{item.subdomain}.mybabyraffle.com</div>
+                    <div className="text-sm opacity-90">{item.subdomain}.base2ml.com</div>
                   </div>
                 </div>
                 
@@ -133,7 +133,7 @@ export default function GallerySection() {
                         <div className={`h-40 bg-gradient-to-br ${item.colors[0]} ${item.colors[1]} rounded-lg flex items-center justify-center`}>
                           <div className="text-center text-white">
                             <div className="text-xl font-bold mb-1">{item.title}</div>
-                            <div className="text-sm opacity-90">{item.subdomain}.mybabyraffle.com</div>
+                            <div className="text-sm opacity-90">{item.subdomain}.base2ml.com</div>
                           </div>
                         </div>
                         

@@ -88,7 +88,7 @@ export default function HeroSection() {
                 <div className="w-3 h-3 bg-green-400 rounded-full"></div>
               </div>
               <div className="flex-1 bg-gray-200 rounded-md px-3 py-1 text-sm text-gray-600 text-center">
-                sarah-and-mike.mybabyraffle.com
+                sarah-and-mike.base2ml.com
               </div>
             </div>
             
