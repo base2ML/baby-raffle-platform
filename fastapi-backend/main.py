@@ -40,6 +40,17 @@ from models import (
 from payment_service import payment_service
 from file_service import file_service
 from site_config_service import site_config_service
+from package_service import package_service
+from site_builder_service import site_builder_service
+from site_builder_models import (
+    HostingPackage, HostingPackageCreate, HostingPackageUpdate,
+    SiteBuilderCreate, SiteBuilderUpdate, SaveSiteRequest,
+    PreviewRequest, ThemeConfig
+)
+from middleware import (
+    tenant_context_middleware, auth_middleware, rate_limit_middleware,
+    require_user, require_tenant, require_role
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -800,6 +811,86 @@ async def get_deployment_history(
 ):
     """Get deployment history (admin+ required)"""
     return await site_config_service.get_deployment_history(tenant.id, limit)
+
+# ============================================================================
+# PACKAGE MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@app.get("/api/packages", response_model=List[HostingPackage])
+async def get_hosting_packages(active_only: bool = True):
+    """Get all hosting packages"""
+    await package_service.initialize_default_packages()
+    return await package_service.get_all_packages(active_only=active_only)
+
+@app.get("/api/packages/{tier}", response_model=HostingPackage)
+async def get_package_by_tier(tier: str):
+    """Get package by tier"""
+    package = await package_service.get_package_by_tier(tier)
+    if not package:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Package not found"
+        )
+    return package
+
+@app.get("/api/packages/marketing/format")
+async def get_packages_for_marketing():
+    """Get packages formatted for marketing site"""
+    return await package_service.get_package_for_marketing()
+
+@app.post("/api/admin/packages", response_model=HostingPackage)
+async def create_hosting_package(
+    package_data: HostingPackageCreate,
+    user: UserRecord = Depends(require_role("owner"))
+):
+    """Create new hosting package (admin only)"""
+    return await package_service.create_package(package_data)
+
+@app.put("/api/admin/packages/{package_id}", response_model=HostingPackage)
+async def update_hosting_package(
+    package_id: str,
+    package_data: HostingPackageUpdate,
+    user: UserRecord = Depends(require_role("owner"))
+):
+    """Update hosting package (admin only)"""
+    return await package_service.update_package(package_id, package_data)
+
+# ============================================================================
+# SITE BUILDER ENDPOINTS
+# ============================================================================
+
+@app.get("/api/builder/themes", response_model=List[ThemeConfig])
+async def get_available_themes():
+    """Get all available themes for site builder"""
+    return await site_builder_service.get_available_themes()
+
+@app.post("/api/builder/create")
+async def create_anonymous_builder(builder_data: SiteBuilderCreate):
+    """Create anonymous site builder session"""
+    return await site_builder_service.create_anonymous_builder(builder_data)
+
+@app.get("/api/builder/{builder_id}")
+async def get_site_builder(builder_id: str):
+    """Get site builder configuration"""
+    return await site_builder_service.get_builder(builder_id)
+
+@app.put("/api/builder/{builder_id}")
+async def update_site_builder(
+    builder_id: str,
+    update_data: SiteBuilderUpdate
+):
+    """Update site builder configuration"""
+    return await site_builder_service.update_builder(builder_id, update_data)
+
+@app.post("/api/builder/{builder_id}/preview")
+async def generate_site_preview(builder_id: str):
+    """Generate temporary preview of the site"""
+    return await site_builder_service.generate_preview(builder_id)
+
+@app.post("/api/builder/save-and-create-account")
+async def save_site_and_create_account(save_request: SaveSiteRequest):
+    """Save site configuration and create user account"""
+    return await site_builder_service.save_site_and_create_account(save_request)
 
 # ============================================================================
 # SUPER ADMIN ENDPOINTS

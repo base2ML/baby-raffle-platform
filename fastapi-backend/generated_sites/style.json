@@ -1,0 +1,90 @@
+{
+  "tenant_id": "f7ecdd6a-e2a9-4b12-ab5d-6f0d6cf3cbc9",
+  "site_id": "f4cf47fc-babd-4a8a-8263-0948dfde1ba3",
+  "subdomain": "style",
+  "created_at": "2025-09-05T20:48:05.904475",
+  "status": "active",
+  "config": {
+    "theme": {
+      "id": "forest_cream",
+      "name": "Forest & Cream",
+      "theme_type": "natural",
+      "description": "Fresh and natural with deep forest green and warm cream tones",
+      "colors": {
+        "primary": "#2F4F2F",
+        "secondary": "#F5F5DC",
+        "accent": "#8FBC8F",
+        "background": "#FFFEF7",
+        "text": "#2D3748",
+        "border": "#E2E8F0"
+      },
+      "typography": {
+        "heading_font": "Merriweather",
+        "body_font": "Open Sans"
+      },
+      "preview_image_url": "/themes/forest-cream.png",
+      "is_premium": false
+    },
+    "content": {
+      "siteTitle": "My Baby Raffle",
+      "welcomeMessage": "Welcome to our Baby Raffle!",
+      "description": "Join our exciting baby raffle and win amazing prizes!",
+      "subdomain": "style",
+      "contactEmail": "",
+      "socialMedia": {
+        "instagram": "",
+        "facebook": ""
+      }
+    },
+    "betting_cards": [
+      {
+        "id": 1,
+        "category": "Birth Date",
+        "options": [
+          "January 1-15",
+          "January 16-31",
+          "February 1-15",
+          "February 16-28"
+        ],
+        "price": 5,
+        "active": true
+      },
+      {
+        "id": 2,
+        "category": "Birth Weight",
+        "options": [
+          "Under 6 lbs",
+          "6-7 lbs",
+          "7-8 lbs",
+          "Over 8 lbs"
+        ],
+        "price": 5,
+        "active": true
+      },
+      {
+        "id": 3,
+        "category": "Birth Time",
+        "options": [
+          "Midnight-6AM",
+          "6AM-Noon",
+          "Noon-6PM",
+          "6PM-Midnight"
+        ],
+        "price": 5,
+        "active": true
+      }
+    ],
+    "payment_info": {
+      "venmo": "@Christopher-testarossa-32",
+      "paypal": "",
+      "cashapp": "",
+      "instructions": "Please send payment with your name and betting selections."
+    },
+    "images": {
+      "logo": "profile_brick.jpeg",
+      "hero": "image000002.jpg",
+      "gallery_count": 3
+    },
+    "package": "starter"
+  }
+}

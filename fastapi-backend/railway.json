@@ -9,6 +9,6 @@
     "restartPolicyType": "ON_FAILURE",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 300,
-    "startCommand": "python simple_api.py"
+    "startCommand": "python production_server.py"
   }
 }

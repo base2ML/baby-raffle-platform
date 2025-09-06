@@ -7,7 +7,7 @@ import json
 import uuid
 import logging
 import subprocess
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime
 from fastapi import HTTPException, status
 
