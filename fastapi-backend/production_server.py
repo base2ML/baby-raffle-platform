@@ -44,7 +44,7 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "GOCSPX-rmeJ_ArsbgmE25-
 JWT_SECRET = os.getenv("JWT_SECRET", "PJ5pL6i6W3iAhwEyY5bJ8jW_PFVZIe0YxT3Zcwk3XyM")
 BASE_URL = os.getenv("API_URL", "https://api.base2ml.com")
 FRONTEND_URL = os.getenv("BUILDER_URL", "https://builder.base2ml.com")
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:kfAcPhUXNArEuZbSHFOZgFsaZEsZEWxk@postgres.railway.internal:5432/railway")
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 # CORS middleware
 app.add_middleware(
@@ -770,4 +770,5 @@ def generate_admin_html(site_id: str, site_data: tuple) -> str:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

@@ -39,7 +39,7 @@ echo "✅ Railway CLI ready and authenticated"
 echo "📦 Setting up Railway project..."
 if [ ! -f ".railway" ] && [ ! -f "railway.toml" ]; then
     echo "🆕 Creating new Railway project..."
-    railway init baby-raffle-saas
+    railway init
     echo "✅ Railway project created"
 else
     echo "✅ Using existing Railway project"

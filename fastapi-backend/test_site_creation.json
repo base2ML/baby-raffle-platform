@@ -1,0 +1,27 @@
+{
+  "theme_id": "sage-terracotta",
+  "site_name": "Test Baby Raffle",
+  "description": "Automated test raffle site",
+  "betting_cards": [
+    {
+      "category": "Gender",
+      "options": ["Boy", "Girl"],
+      "price": 5.00
+    },
+    {
+      "category": "Weight",
+      "options": ["Under 7 lbs", "7-8 lbs", "Over 8 lbs"],
+      "price": 3.00
+    }
+  ],
+  "images": {
+    "hero": "/images/test-hero.jpg",
+    "gallery": ["/images/test1.jpg", "/images/test2.jpg"]
+  },
+  "payment_info": {
+    "venmo": "@test-user",
+    "paypal": "test@example.com",
+    "cashapp": "$testuser"
+  },
+  "package": "starter"
+}
