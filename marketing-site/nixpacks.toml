@@ -1,0 +1,10 @@
+[phases.build]
+cmds = ['npm ci', 'npm run build']
+
+[phases.start]
+cmd = 'npm start'
+
+[variables]
+NODE_ENV = 'production'
+NEXT_PUBLIC_API_URL = 'https://api.base2ml.com'
+NEXT_PUBLIC_SITE_URL = 'https://babyraffle.base2ml.com'

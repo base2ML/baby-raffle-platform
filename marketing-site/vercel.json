@@ -1,4 +1,9 @@
 {
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://api.base2ml.com",
+    "NEXT_PUBLIC_SITE_URL": "https://babyraffle.base2ml.com"
+  },
   "functions": {
     "src/app/api/*/route.ts": {
       "maxDuration": 30
