@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+// Using system fonts for reliable deployment
+const fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
 
 export const metadata: Metadata = {
   title: 'Baby Raffle - Create Beautiful Baby Betting Sites | Share the Joy',
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Baby Raffle - Create Beautiful Baby Betting Sites',
     description: 'Create stunning, secure baby raffle websites where family and friends can make predictions about your little one\'s arrival.',
-    url: 'https://mybabyraffle.base2ml.com',
+    url: 'https://babyraffle.base2ml.com',
     siteName: 'Baby Raffle',
     images: [
       {
@@ -85,7 +85,7 @@ export default function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content="#a855f7" />
       </head>
-      <body className={`${inter.className} antialiased`}>
+      <body style={{fontFamily}} className="antialiased">
         {children}
       </body>
     </html>

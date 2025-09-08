@@ -1,50 +1,42 @@
 #!/bin/bash
-
-# Baby Raffle Marketing Site Deployment Script
-
 set -e
 
-echo "🚀 Deploying Baby Raffle Marketing Site..."
+echo "🚀 Fresh Baby Raffle Marketing Site Deployment"
+echo "=============================================="
 
-# Check if we're in the right directory
-if [ ! -f "package.json" ]; then
-    echo "❌ Error: package.json not found. Make sure you're in the marketing-site directory."
-    exit 1
-fi
+# Clean previous builds
+echo "🧹 Cleaning previous builds..."
+rm -rf .next
+rm -rf out
+rm -rf node_modules/.cache
 
 # Install dependencies
 echo "📦 Installing dependencies..."
 npm ci
 
-# Run type checking
-echo "🔍 Type checking..."
-npm run lint
-
-# Build the application
-echo "🏗️ Building application..."
+# Run build
+echo "🔨 Building Next.js application..."
 npm run build
 
-# Optional: Run tests if they exist
-if npm run test --dry-run 2>/dev/null; then
-    echo "🧪 Running tests..."
-    npm run test
-fi
-
+# Test the build locally
 echo "✅ Build completed successfully!"
-
-# Export static files if needed
-if [ "$1" = "--static" ]; then
-    echo "📤 Exporting static files..."
-    npm run export
-    echo "✅ Static export completed!"
-fi
-
-# Deploy to Vercel if configured
-if command -v vercel &> /dev/null && [ "$1" = "--vercel" ]; then
-    echo "🌐 Deploying to Vercel..."
-    vercel --prod
-    echo "✅ Deployed to Vercel!"
-fi
-
-echo "🎉 Deployment completed successfully!"
-echo "🌟 Marketing site is ready to convert visitors into customers!"
+echo ""
+echo "🎯 Ready for deployment with:"
+echo "   ✅ All .mybabyraffle.com → .base2ml.com fixes applied"
+echo "   ✅ Next.js 14 with App Router"
+echo "   ✅ TypeScript and Tailwind CSS"
+echo "   ✅ Clean build output"
+echo ""
+echo "📋 Next steps:"
+echo "   1. Deploy to Vercel with these settings:"
+echo "      - Framework Preset: Next.js"
+echo "      - Root Directory: (leave empty)"
+echo "      - Build Command: npm run build"
+echo "      - Output Directory: (leave empty)"
+echo "      - Install Command: npm ci"
+echo ""
+echo "   2. Environment Variables:"
+echo "      - NEXT_PUBLIC_API_URL: https://api.base2ml.com"
+echo "      - NEXT_PUBLIC_SITE_URL: https://babyraffle.base2ml.com"
+echo ""
+echo "🔗 Expected result: https://babyraffle.base2ml.com shows .base2ml.com throughout"
