@@ -1,25 +1,6 @@
 {
-  "version": 2,
-  "name": "baby-raffle-marketing-fresh",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ],
   "env": {
     "NEXT_PUBLIC_API_URL": "https://api.base2ml.com",
     "NEXT_PUBLIC_SITE_URL": "https://babyraffle.base2ml.com"
-  },
-  "functions": {
-    "app/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
   }
 }
