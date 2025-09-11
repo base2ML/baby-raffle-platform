@@ -63,7 +63,7 @@ export async function checkSubdomainAvailability(subdomain: string): Promise<boo
       return data.available === true || data.available === 'true'
     }
   } catch (error) {
-    console.log('API unavailable, using fallback validation:', error.message)
+    console.log('API unavailable, using fallback validation:', error instanceof Error ? error.message : error)
   }
   
   // Fallback: Most subdomains should be available
