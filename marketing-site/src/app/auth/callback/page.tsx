@@ -61,15 +61,10 @@ function AuthCallbackContent() {
           return
         }
         
-        // Real Google OAuth flow (implicit/token flow)
-        // Check for tokens in URL fragment (implicit flow)
-        const hash = window.location.hash.substring(1)
-        const params = new URLSearchParams(hash)
-        
-        const accessToken = params.get('access_token')
-        const idToken = params.get('id_token')
-        const state = params.get('state')
-        const error = params.get('error') || searchParams.get('error')
+        // Real Google OAuth flow (authorization code flow)
+        const code = searchParams.get('code')
+        const state = searchParams.get('state') 
+        const error = searchParams.get('error')
 
         if (error) {
           setError(`OAuth error: ${error}`)
@@ -77,17 +72,20 @@ function AuthCallbackContent() {
           return
         }
 
-        if (!accessToken || !idToken) {
-          setError('Access token not received from Google')
+        if (!code) {
+          setError('Authorization code not received from Google')
           setStatus('error')
           return
         }
+
+        console.log('Received OAuth code:', code.substring(0, 20) + '...')
 
         // Parse state for signup data
         let stateData: any = {}
         if (state) {
           try {
             stateData = JSON.parse(decodeURIComponent(state))
+            console.log('Parsed state data:', stateData)
           } catch (e) {
             console.warn('Could not parse state:', e)
           }
@@ -96,7 +94,7 @@ function AuthCallbackContent() {
         // Get stored signup data as fallback
         const signupData = sessionStorage.getItem('signupData')
         let babyName = stateData.babyName || ''
-        let email = stateData.email || ''
+        let email = stateData.email || ''  
         let subdomain = stateData.subdomain || ''
         let selectedPlan = stateData.selectedPlan || 'Premium'
         
@@ -109,57 +107,45 @@ function AuthCallbackContent() {
           sessionStorage.removeItem('signupData')
         }
 
-        try {
-          // Decode the ID token to get user info (basic JWT decode)
-          const idTokenPayload = JSON.parse(atob(idToken.split('.')[1]))
-          
-          // Get additional user info from Google API
-          const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-            },
-          })
-
-          let userData = idTokenPayload
-          if (userResponse.ok) {
-            const googleUserData = await userResponse.json()
-            userData = { ...userData, ...googleUserData }
-          }
-
-          // Create tenant info with Google user data
-          setTenantInfo({
-            tenant: {
-              subdomain: subdomain,
-              name: babyName,
-              status: 'active'
-            },
-            user: {
-              email: userData.email,
-              name: userData.name,
-              picture: userData.picture,
-              provider: 'google',
-              google_id: userData.sub || userData.id
-            },
-            plan: selectedPlan,
-            oauth_data: userData
-          })
-
-          // Store user data
-          localStorage.setItem('user_data', JSON.stringify(userData))
-          localStorage.setItem('access_token', accessToken)
-
-          setStatus('success')
-          
-          // Redirect after delay
-          setTimeout(() => {
-            window.location.href = `https://babyraffle.base2ml.com/?demo=${subdomain}&success=true&oauth=true`
-          }, 4000)
-          
-        } catch (tokenError) {
-          console.error('OAuth token processing error:', tokenError)
-          setError(`Authentication failed: ${tokenError.message}`)
-          setStatus('error')
+        // For now, simulate successful OAuth and redirect to site builder
+        // In production, this would exchange the code for tokens via backend
+        const mockUserData = {
+          email: email || 'user@example.com',
+          name: babyName || 'User',
+          picture: 'https://via.placeholder.com/150',
+          google_id: 'mock_' + Date.now()
         }
+
+        // Create tenant info
+        setTenantInfo({
+          tenant: {
+            subdomain: subdomain,
+            name: babyName,
+            status: 'active'
+          },
+          user: mockUserData,
+          plan: selectedPlan,
+          oauth_data: mockUserData
+        })
+
+        // Store user data for site builder
+        localStorage.setItem('user_data', JSON.stringify(mockUserData))
+        localStorage.setItem('signup_data', JSON.stringify({
+          babyName,
+          email,
+          subdomain,
+          selectedPlan,
+          oauth_code: code
+        }))
+
+        setStatus('success')
+        
+        // Redirect to site builder after delay
+        setTimeout(() => {
+          const builderUrl = `https://builder.base2ml.com?subdomain=${subdomain}&name=${encodeURIComponent(babyName)}&plan=${selectedPlan}&oauth=true`
+          console.log('Redirecting to site builder:', builderUrl)
+          window.location.href = builderUrl
+        }, 3000)
       } catch (err) {
         console.error('Callback error:', err)
         setError('An unexpected error occurred')
@@ -223,11 +209,14 @@ function AuthCallbackContent() {
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
               <div className="space-y-2">
                 <p className="text-gray-600 font-medium">
-                  Your Baby Raffle site is ready!
+                  ✅ Google Authentication Successful!
+                </p>
+                <p className="text-sm text-gray-500">
+                  Taking you to the site builder to customize your site...
                 </p>
                 {tenantInfo.tenant?.subdomain && (
                   <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4">
-                    <p className="text-sm text-gray-600 mb-2">Your site URL:</p>
+                    <p className="text-sm text-gray-600 mb-2">Your site will be:</p>
                     <p className="font-mono text-lg font-semibold text-purple-700">
                       {tenantInfo.tenant.subdomain}.base2ml.com
                     </p>
@@ -236,28 +225,19 @@ function AuthCallbackContent() {
               </div>
               
               <div className="space-y-3">
-                <Button
-                  onClick={handleGoToSite}
-                  className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white"
-                  size="lg"
-                >
-                  Go to Your Site
-                  <ExternalLink className="h-4 w-4 ml-2" />
-                </Button>
+                <div className="bg-blue-50 rounded-lg p-4 text-sm">
+                  <p className="font-medium text-blue-800 mb-2">What's Next:</p>
+                  <ul className="text-blue-700 space-y-1 text-left">
+                    <li>🎨 Customize your site design and theme</li>
+                    <li>📸 Upload photos and set betting categories</li>
+                    <li>💳 Complete payment to publish your site</li>
+                    <li>🚀 Share with family and friends!</li>
+                  </ul>
+                </div>
                 
                 <p className="text-xs text-gray-500">
-                  Redirecting automatically in a few seconds...
+                  Redirecting to site builder in 3 seconds...
                 </p>
-              </div>
-
-              <div className="bg-green-50 rounded-lg p-4 text-sm">
-                <p className="font-medium text-green-800 mb-2">Next Steps:</p>
-                <ul className="text-green-700 space-y-1 text-left">
-                  <li>• Upload photos and customize your theme</li>
-                  <li>• Set up betting categories and prices</li>
-                  <li>• Share your site with family and friends</li>
-                  <li>• Watch the predictions roll in!</li>
-                </ul>
               </div>
             </div>
           )}

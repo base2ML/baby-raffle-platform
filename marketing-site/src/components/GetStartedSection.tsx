@@ -66,16 +66,16 @@ export default function GetStartedSection() {
     }))
     
     if (provider === 'google') {
-      // Real Google OAuth flow using implicit flow (token response)
-      const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '616947441714-1pvasp7lcp2p8r9c8qnmvbmva2snlnll.apps.googleusercontent.com'
+      // Real Google OAuth flow - redirect to Google
+      const googleClientId = '616947441714-1pvasp7lcp2p8r9c8qnmvbmva2snlnll.apps.googleusercontent.com'
       const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`)
       const scope = encodeURIComponent('openid email profile')
-      const responseType = 'token id_token'  // Use implicit flow for client-side
+      const responseType = 'code'  // Use authorization code flow
       const state = encodeURIComponent(JSON.stringify({ subdomain, babyName, email, selectedPlan }))
-      const nonce = Math.random().toString(36).substring(2, 15)
       
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=${responseType}&state=${state}&nonce=${nonce}&prompt=consent`
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=${responseType}&state=${state}&access_type=offline&prompt=consent`
       
+      console.log('Redirecting to Google OAuth:', googleAuthUrl)
       window.location.href = googleAuthUrl
     } else {
       // Fallback demo flow for other providers
