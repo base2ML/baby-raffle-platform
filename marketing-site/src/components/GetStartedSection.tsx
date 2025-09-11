@@ -34,13 +34,7 @@ export default function GetStartedSection() {
     }
   }, [])
 
-  // Auto-generate subdomain from baby name
-  useEffect(() => {
-    if (babyName) {
-      const generated = generateSubdomain(babyName)
-      setSubdomain(generated)
-    }
-  }, [babyName])
+  // Removed auto-generation - let users manually control subdomain
 
   // Check subdomain availability when it changes
   useEffect(() => {
