@@ -1,5 +1,8 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { CheckCircle, X } from 'lucide-react'
 import Navigation from '@/components/Navigation'
 import HeroSection from '@/components/HeroSection'
 import FeaturesSection from '@/components/FeaturesSection'
@@ -10,8 +13,56 @@ import GetStartedSection from '@/components/GetStartedSection'
 import Footer from '@/components/Footer'
 
 export default function Home() {
+  const searchParams = useSearchParams()
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false)
+  const [demoSubdomain, setDemoSubdomain] = useState('')
+
+  useEffect(() => {
+    const success = searchParams.get('success')
+    const demo = searchParams.get('demo')
+    
+    if (success === 'true' && demo) {
+      setShowSuccessBanner(true)
+      setDemoSubdomain(demo)
+      
+      // Auto-hide after 10 seconds
+      setTimeout(() => {
+        setShowSuccessBanner(false)
+      }, 10000)
+    }
+  }, [searchParams])
+
   return (
     <main className="min-h-screen">
+      {/* Success Banner */}
+      {showSuccessBanner && (
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 p-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="h-6 w-6 text-green-600" />
+              <div>
+                <p className="text-green-800 font-semibold">
+                  🎉 Congratulations! Your baby raffle site would be created at:
+                </p>
+                <p className="text-green-700 font-mono">
+                  https://{demoSubdomain}.base2ml.com
+                </p>
+                <p className="text-sm text-green-600 mt-1">
+                  This is a demo - the full platform is coming soon! 
+                  <a href="#get-started" className="underline ml-1">Join our waitlist</a>
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowSuccessBanner(false)}
+              className="text-green-600 hover:text-green-800 p-1"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
+      
       <Navigation />
       <HeroSection />
       <FeaturesSection />

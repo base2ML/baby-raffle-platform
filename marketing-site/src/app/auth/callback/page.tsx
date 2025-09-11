@@ -16,6 +16,52 @@ function AuthCallbackContent() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        // Check if this is a demo flow
+        const isDemo = searchParams.get('demo') === 'true'
+        
+        if (isDemo) {
+          // Handle demo flow
+          const siteUrl = searchParams.get('site_url')
+          const babyName = searchParams.get('baby_name')
+          const email = searchParams.get('email')
+          const plan = searchParams.get('plan')
+          const provider = searchParams.get('provider')
+          
+          if (!siteUrl || !babyName) {
+            setError('Missing required information')
+            setStatus('error')
+            return
+          }
+          
+          // Extract subdomain from site URL
+          const subdomain = siteUrl.replace('https://', '').replace('.base2ml.com', '')
+          
+          // Create mock tenant info for demo
+          setTenantInfo({
+            tenant: {
+              subdomain: subdomain,
+              name: babyName,
+              status: 'active'
+            },
+            user: {
+              email: email,
+              name: babyName,
+              provider: provider
+            },
+            plan: plan
+          })
+          
+          setStatus('success')
+          
+          // Redirect to a demo success page after delay
+          setTimeout(() => {
+            window.location.href = `https://babyraffle.base2ml.com/?demo=${subdomain}&success=true`
+          }, 4000)
+          
+          return
+        }
+        
+        // Original OAuth flow (for when backend is available)
         const code = searchParams.get('code')
         const state = searchParams.get('state')
         const provider = searchParams.get('provider') || 'google'
@@ -68,7 +114,7 @@ function AuthCallbackContent() {
           // Redirect to the user's site after a delay
           setTimeout(() => {
             if (data.user_info?.tenant?.subdomain) {
-              window.location.href = `https://${data.user_info.tenant.subdomain}.mybabyraffle.base2ml.com`
+              window.location.href = `https://${data.user_info.tenant.subdomain}.base2ml.com`
             }
           }, 3000)
         } else {
@@ -91,7 +137,13 @@ function AuthCallbackContent() {
 
   const handleGoToSite = () => {
     if (tenantInfo?.tenant?.subdomain) {
-      window.location.href = `https://${tenantInfo.tenant.subdomain}.mybabyraffle.base2ml.com`
+      // For demo, redirect back to marketing site with success message
+      const isDemo = searchParams.get('demo') === 'true'
+      if (isDemo) {
+        window.location.href = `https://babyraffle.base2ml.com/?demo=${tenantInfo.tenant.subdomain}&success=true`
+      } else {
+        window.location.href = `https://${tenantInfo.tenant.subdomain}.base2ml.com`
+      }
     }
   }
 

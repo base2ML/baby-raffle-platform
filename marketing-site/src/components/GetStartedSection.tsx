@@ -65,17 +65,21 @@ export default function GetStartedSection() {
       selectedPlan
     }))
     
-    // Redirect to OAuth
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.base2ml.com'
-    const params = new URLSearchParams({
-      provider,
-      tenant_subdomain: subdomain,
-      baby_name: babyName,
-      email,
-      plan: selectedPlan
-    })
+    // For demo purposes, redirect to a success page with the user's data
+    // In production, this would go to the real OAuth endpoint
+    const demoSiteUrl = `https://${subdomain}.base2ml.com`
     
-    window.location.href = `${apiUrl}/api/auth/login?${params}`
+    // Create demo success URL with encoded data
+    const demoData = {
+      site_url: demoSiteUrl,
+      baby_name: babyName,
+      email: email,
+      plan: selectedPlan,
+      provider: provider
+    }
+    
+    const params = new URLSearchParams(demoData)
+    window.location.href = `/auth/callback?${params}&demo=true`
   }
 
   const isFormValid = babyName && email && subdomain && subdomainStatus === 'available'
@@ -222,31 +226,22 @@ export default function GetStartedSection() {
                   </p>
                 </div>
 
-                {/* OAuth Buttons */}
+                {/* OAuth Button */}
                 <div className="space-y-3">
-                  <p className="text-sm font-medium text-gray-700 text-center">
-                    Create your account with:
-                  </p>
-                  
                   <Button
                     onClick={() => handleOAuthSignup('google')}
                     disabled={!isFormValid}
-                    className="w-full bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200"
                     size="lg"
                   >
                     <Mail className="h-5 w-5 mr-3" />
                     Continue with Google
+                    <ArrowRight className="h-5 w-5 ml-3" />
                   </Button>
                   
-                  <Button
-                    onClick={() => handleOAuthSignup('github')}
-                    disabled={!isFormValid}
-                    className="w-full bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
-                    size="lg"
-                  >
-                    <Github className="h-5 w-5 mr-3" />
-                    Continue with GitHub
-                  </Button>
+                  <p className="text-xs text-gray-500 text-center">
+                    Secure signup with your Google account
+                  </p>
                 </div>
 
                 <p className="text-xs text-gray-500 text-center">
