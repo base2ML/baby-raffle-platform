@@ -61,64 +61,103 @@ function AuthCallbackContent() {
           return
         }
         
-        // Original OAuth flow (for when backend is available)
-        const code = searchParams.get('code')
-        const state = searchParams.get('state')
-        const provider = searchParams.get('provider') || 'google'
+        // Real Google OAuth flow (implicit/token flow)
+        // Check for tokens in URL fragment (implicit flow)
+        const hash = window.location.hash.substring(1)
+        const params = new URLSearchParams(hash)
+        
+        const accessToken = params.get('access_token')
+        const idToken = params.get('id_token')
+        const state = params.get('state')
+        const error = params.get('error') || searchParams.get('error')
 
-        if (!code) {
-          setError('Authorization code not received')
+        if (error) {
+          setError(`OAuth error: ${error}`)
           setStatus('error')
           return
         }
 
-        // Get stored signup data
+        if (!accessToken || !idToken) {
+          setError('Access token not received from Google')
+          setStatus('error')
+          return
+        }
+
+        // Parse state for signup data
+        let stateData = {}
+        if (state) {
+          try {
+            stateData = JSON.parse(decodeURIComponent(state))
+          } catch (e) {
+            console.warn('Could not parse state:', e)
+          }
+        }
+
+        // Get stored signup data as fallback
         const signupData = sessionStorage.getItem('signupData')
-        let babyName = '', email = '', subdomain = '', selectedPlan = 'Premium'
+        let babyName = stateData.babyName || ''
+        let email = stateData.email || ''
+        let subdomain = stateData.subdomain || ''
+        let selectedPlan = stateData.selectedPlan || 'Premium'
         
-        if (signupData) {
+        if (signupData && (!babyName || !email || !subdomain)) {
           const data = JSON.parse(signupData)
-          babyName = data.babyName
-          email = data.email
-          subdomain = data.subdomain
-          selectedPlan = data.selectedPlan
+          babyName = babyName || data.babyName
+          email = email || data.email
+          subdomain = subdomain || data.subdomain
+          selectedPlan = selectedPlan || data.selectedPlan
           sessionStorage.removeItem('signupData')
         }
 
-        // Call the OAuth callback endpoint
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/callback`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            provider,
-            code,
-            state,
-            baby_name: babyName,
-            email,
-            subdomain,
-            plan: selectedPlan
-          }),
-        })
+        try {
+          // Decode the ID token to get user info (basic JWT decode)
+          const idTokenPayload = JSON.parse(atob(idToken.split('.')[1]))
+          
+          // Get additional user info from Google API
+          const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+            },
+          })
 
-        const data = await response.json()
+          let userData = idTokenPayload
+          if (userResponse.ok) {
+            const googleUserData = await userResponse.json()
+            userData = { ...userData, ...googleUserData }
+          }
 
-        if (response.ok && data.access_token) {
-          setTenantInfo(data.user_info)
+          // Create tenant info with Google user data
+          setTenantInfo({
+            tenant: {
+              subdomain: subdomain,
+              name: babyName,
+              status: 'active'
+            },
+            user: {
+              email: userData.email,
+              name: userData.name,
+              picture: userData.picture,
+              provider: 'google',
+              google_id: userData.sub || userData.id
+            },
+            plan: selectedPlan,
+            oauth_data: userData
+          })
+
+          // Store user data
+          localStorage.setItem('user_data', JSON.stringify(userData))
+          localStorage.setItem('access_token', accessToken)
+
           setStatus('success')
           
-          // Store the access token
-          localStorage.setItem('access_token', data.access_token)
-          
-          // Redirect to the user's site after a delay
+          // Redirect after delay
           setTimeout(() => {
-            if (data.user_info?.tenant?.subdomain) {
-              window.location.href = `https://${data.user_info.tenant.subdomain}.base2ml.com`
-            }
-          }, 3000)
-        } else {
-          setError(data.message || 'Authentication failed')
+            window.location.href = `https://babyraffle.base2ml.com/?demo=${subdomain}&success=true&oauth=true`
+          }, 4000)
+          
+        } catch (tokenError) {
+          console.error('OAuth token processing error:', tokenError)
+          setError(`Authentication failed: ${tokenError.message}`)
           setStatus('error')
         }
       } catch (err) {

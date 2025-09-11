@@ -16,19 +16,22 @@ function SuccessBanner() {
   const searchParams = useSearchParams()
   const [showSuccessBanner, setShowSuccessBanner] = useState(false)
   const [demoSubdomain, setDemoSubdomain] = useState('')
+  const [isRealOAuth, setIsRealOAuth] = useState(false)
 
   useEffect(() => {
     const success = searchParams.get('success')
     const demo = searchParams.get('demo')
+    const oauth = searchParams.get('oauth')
     
     if (success === 'true' && demo) {
       setShowSuccessBanner(true)
       setDemoSubdomain(demo)
+      setIsRealOAuth(oauth === 'true')
       
-      // Auto-hide after 10 seconds
+      // Auto-hide after 15 seconds for OAuth (more time to read)
       setTimeout(() => {
         setShowSuccessBanner(false)
-      }, 10000)
+      }, oauth === 'true' ? 15000 : 10000)
     }
   }, [searchParams])
 
@@ -41,14 +44,17 @@ function SuccessBanner() {
           <CheckCircle className="h-6 w-6 text-green-600" />
           <div>
             <p className="text-green-800 font-semibold">
-              🎉 Congratulations! Your baby raffle site would be created at:
+              🎉 {isRealOAuth ? 'Google sign-in successful!' : 'Congratulations!'} Your baby raffle site would be created at:
             </p>
             <p className="text-green-700 font-mono">
               https://{demoSubdomain}.base2ml.com
             </p>
             <p className="text-sm text-green-600 mt-1">
-              This is a demo - the full platform is coming soon! 
-              <a href="#get-started" className="underline ml-1">Join our waitlist</a>
+              {isRealOAuth ? (
+                <>✅ Real Google OAuth completed! This shows the full platform is coming soon. <a href="#get-started" className="underline ml-1">Join our waitlist</a></>
+              ) : (
+                <>This is a demo - the full platform is coming soon! <a href="#get-started" className="underline ml-1">Join our waitlist</a></>
+              )}
             </p>
           </div>
         </div>
