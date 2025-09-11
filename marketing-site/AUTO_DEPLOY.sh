@@ -27,7 +27,8 @@ echo "🚀 Deploying to Vercel..."
 vercel --prod \
   --build-env NEXT_PUBLIC_API_URL="https://api.base2ml.com" \
   --build-env NEXT_PUBLIC_SITE_URL="https://babyraffle.base2ml.com" \
-  --force
+  --force \
+  --yes
 
 echo ""
 echo "✅ Deployment completed!"
