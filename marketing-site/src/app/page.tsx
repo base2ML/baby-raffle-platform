@@ -17,21 +17,25 @@ function SuccessBanner() {
   const [showSuccessBanner, setShowSuccessBanner] = useState(false)
   const [demoSubdomain, setDemoSubdomain] = useState('')
   const [isRealOAuth, setIsRealOAuth] = useState(false)
+  const [currentStep, setCurrentStep] = useState('')
 
   useEffect(() => {
     const success = searchParams.get('success')
     const demo = searchParams.get('demo')
+    const subdomain = searchParams.get('subdomain')
     const oauth = searchParams.get('oauth')
+    const step = searchParams.get('step')
     
-    if (success === 'true' && demo) {
+    if (success === 'true' && (demo || subdomain)) {
       setShowSuccessBanner(true)
-      setDemoSubdomain(demo)
+      setDemoSubdomain(demo || subdomain || '')
       setIsRealOAuth(oauth === 'true')
+      setCurrentStep(step || 'success')
       
-      // Auto-hide after 15 seconds for OAuth (more time to read)
+      // Auto-hide after 20 seconds for OAuth builder step (more time to read)
       setTimeout(() => {
         setShowSuccessBanner(false)
-      }, oauth === 'true' ? 15000 : 10000)
+      }, step === 'builder' ? 20000 : oauth === 'true' ? 15000 : 10000)
     }
   }, [searchParams])
 
@@ -44,13 +48,19 @@ function SuccessBanner() {
           <CheckCircle className="h-6 w-6 text-green-600" />
           <div>
             <p className="text-green-800 font-semibold">
-              🎉 {isRealOAuth ? 'Google sign-in successful!' : 'Congratulations!'} Your baby raffle site would be created at:
+              {currentStep === 'builder' ? (
+                <>🎨 Ready to customize your baby raffle site!</>
+              ) : (
+                <>🎉 {isRealOAuth ? 'Google sign-in successful!' : 'Congratulations!'} Your baby raffle site would be created at:</>
+              )}
             </p>
             <p className="text-green-700 font-mono">
               https://{demoSubdomain}.base2ml.com
             </p>
             <p className="text-sm text-green-600 mt-1">
-              {isRealOAuth ? (
+              {currentStep === 'builder' ? (
+                <>✅ OAuth complete! Next: Site Builder → Payment Portal → Live Site. Full platform launching soon! <a href="#get-started" className="underline ml-1">Join our waitlist</a></>
+              ) : isRealOAuth ? (
                 <>✅ Real Google OAuth completed! This shows the full platform is coming soon. <a href="#get-started" className="underline ml-1">Join our waitlist</a></>
               ) : (
                 <>This is a demo - the full platform is coming soon! <a href="#get-started" className="underline ml-1">Join our waitlist</a></>

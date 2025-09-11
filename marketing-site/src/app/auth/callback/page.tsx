@@ -142,9 +142,11 @@ function AuthCallbackContent() {
         
         // Redirect to site builder after delay
         setTimeout(() => {
-          const builderUrl = `https://builder.base2ml.com?subdomain=${subdomain}&name=${encodeURIComponent(babyName)}&plan=${selectedPlan}&oauth=true`
-          console.log('Redirecting to site builder:', builderUrl)
-          window.location.href = builderUrl
+          // For now, show success message and redirect back to marketing site
+          // In production, this would redirect to the deployed site builder
+          const successUrl = `https://babyraffle.base2ml.com/?success=true&oauth=true&subdomain=${subdomain}&name=${encodeURIComponent(babyName)}&step=builder`
+          console.log('OAuth successful - redirecting to:', successUrl)
+          window.location.href = successUrl
         }, 3000)
       } catch (err) {
         console.error('Callback error:', err)
