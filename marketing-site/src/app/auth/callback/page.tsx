@@ -84,7 +84,7 @@ function AuthCallbackContent() {
         }
 
         // Parse state for signup data
-        let stateData = {}
+        let stateData: any = {}
         if (state) {
           try {
             stateData = JSON.parse(decodeURIComponent(state))
